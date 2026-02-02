@@ -1,7 +1,10 @@
+HEAD
 # Created by https://www.toptal.com/developers/gitignore/api/st-stm32cubeide,c
 # Edit at https://www.toptal.com/developers/gitignore?templates=st-stm32cubeide,c
 
 ### C ###
+
+c0d8ac828c619d77a6de89893173be742d992191
 # Prerequisites
 *.d
 
@@ -55,6 +58,7 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+HEAD
 # STM32CubeIDE specifics
 Debug/
 Release/
@@ -64,3 +68,6 @@ Release/
 #!! ERROR: st-stm32cubeide is undefined. Use list command to see defined gitignore types !!#
 
 # End of https://www.toptal.com/developers/gitignore/api/st-stm32cubeide,c
+# debug information files
+*.dwo
+c0d8ac828c619d77a6de89893173be742d992191

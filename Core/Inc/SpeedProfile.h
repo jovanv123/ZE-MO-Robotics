@@ -14,6 +14,7 @@
 #include "PID.h"
 float calculate_trapezoid(float max_speed, float acceleration, float current_x, float current_y, float x_goal, float y_goal, uint8_t *movement_phase);
 float calculate_angular_trapezoid(float max_ang_vel, float ang_accel, float current_fi, float target_fi, uint8_t *movement_phase);
+float calculate_spin_trapezoid(float max_ang_vel, float ang_accel, float relative_fi, float target_relative_fi, uint8_t *phase);
 void reset_move_profiles();
 float get_remaining();
 

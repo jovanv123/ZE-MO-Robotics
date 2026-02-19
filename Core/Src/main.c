@@ -1,4 +1,3 @@
-/* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
@@ -30,7 +29,7 @@ TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim5;
 TIM_HandleTypeDef htim9;
 TIM_HandleTypeDef htim10;
-
+TIM_HandleTypeDef htim11;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -46,14 +45,19 @@ static void MX_TIM3_Init(void);
 static void MX_TIM5_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM9_Init(void);
+static void MX_TIM11_Init(void);
 /* USER CODE BEGIN PFP */
 bool read_sensors();
+void turn_crates();
 void navigate(float tx, float ty, int8_t direction);
+void spin_robot(float num_circles);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 volatile float ref_fi;
+volatile float spin_target = 0.0f;
+volatile float spin_start_angle = 0.0f;
 volatile float remaining;
 volatile float cx, cy, cfi, c_speedr, c_speedl;
 float global_goal_x, global_goal_y;
@@ -99,14 +103,15 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM10_Init();
   MX_TIM4_Init();
-  MX_TIM9_Init();
+//  MX_TIM9_Init();
   MX_TIM3_Init();
   MX_TIM1_Init();
   MX_TIM5_Init();
+  MX_TIM11_Init();
   MX_USART6_UART_Init();
   PWM_Init();
   encoder_init();
-  odometry_init(77.2, 77.2, 390);
+  odometry_init(81.54, 81.54, 424.77);
   HAL_TIM_Base_Start_IT(&htim10);
   /* USER CODE END 2 */
 
@@ -116,43 +121,69 @@ int main(void)
 	  switch (state)
 	  {
 	  	  case 0:
-	  		  move_AX(0xFE, 30, 100);
-//	  		  navigate(500, 0, FORWARDS);
+	  		  set_AX_WheelMode(LEFT_LEADSCREW_AX, 1);
+	  		  HAL_Delay(100);
+	  		  set_AX_WheelMode(RIGHT_LEADSCREW_AX, 1);
+	  		  HAL_Delay(100);
+//
+	  		  move_AX_Wheels_Sync_Limited(LEFT_LEADSCREW_AX, -100, RIGHT_LEADSCREW_AX, -100, 15);
+//	  		  HAL_Delay(700);
+//
+//
+//	  		move_AX_Wheels_Sync_Limited(LEFT_LEADSCREW_AX, -100, RIGHT_LEADSCREW_AX, -100, 30);
+
+
+//	  		  move_AX_Wheels_Sync(LEFT_LEADSCREW_AX, 100, RIGHT_LEADSCREW_AX, 100);
+//	  		  HAL_Delay(1500);
+//	  		  move_AX_Wheels_Sync(LEFT_LEADSCREW_AX, 0, RIGHT_LEADSCREW_AX, 0);
+//	  		  HAL_Delay(3000);
+//	            HAL_Delay(300);
+//	            PWM_SetServo_Position(1, 180);
+//	            HAL_Delay(300);
+//	            PWM_SetServo_Position(1, 0);
+
+//	  		  move_AX(BACK_ROTATOR_AX, 60, 100);
+//	  		  move_AX_Servo_Sync(FRONT_ROTATOR_AX, FRONT_ROTATOR_OPENED, BACK_ROTATOR_AX, BACK_ROTATOR_OPENED, 100);
+//	  		  HAL_Delay(500);
+//	  		  PWM_SetServo_Position(1, 0);
+//	  		  HAL_Delay(1200);
+//	  		  move_AX_Servo_Sync(FRONT_ROTATOR_AX, FRONT_ROTATOR_CLOSED, BACK_ROTATOR_AX, BACK_ROTATOR_CLOSED, 100);
 	  		  state++;
 	  		  break;
 	  	  case 1:
 	  		  if (movement_phase == IDLE)
 	  		  {
 
-//	  			navigate(500, 500, FORWARDS);
+
+//	  			navigate(0, 0, FORWARDS);
 	  			state++;
 	  		  }
 	  		  break;
 	  	  case 2:
-	  		  if (movement_phase == IDLE)
+	  		  if (movement_phase == IDLE && !read_sensors())
 	  		  {
-//	  			navigate(500, 0, BACKWARDS);
+//	  			navigate(1, 0, FORWARDS);
 	  			state++;
 	  		  }
 	  		  break;
 	  	  case 3:
 	  		  if (movement_phase == IDLE)
 	  		  {
-//	  			navigate(0, 0, BACKWARDS);
+//	  			navigate(0, 0, FORWARDS);
 	  			state++;
 	  		  }
 	  		  break;
 	  	  case 4:
 	  		  if (movement_phase == IDLE)
 	  		  {
-//	  			  navigate(0, 500, BACKWARDS);
+//	  			  navigate(1, 0, FORWARDS);
 	  		  	  state++;
 	  		  }
 	  		  break;
 	  	  case 5:
 	  		  if (movement_phase == IDLE)
 	  		  {
-//	  			navigate(500, 500, BACKWARDS);
+//	  			navigate(0, 0, FORWARDS);
 	  			state++;
 	  		  }
 	  		  break;
@@ -175,7 +206,7 @@ int main(void)
   }
 
 }
-
+float debug3, debug4;
 
 // Inside TIM10 Callback
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
@@ -183,42 +214,49 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     if (htim->Instance == TIM10)
     {
         calculate_odometry();
-
         cx = get_x();
         cy = get_y();
         cfi = get_fi();
+
         c_speedl = get_speed_l();
         c_speedr = get_speed_r();
-        ref_fi = atan2f(global_goal_y - cy, global_goal_x - cx);
 
-
-        if (dir == BACKWARDS)
+        if (movement_phase == TRANSLATION || movement_phase == ROTATION || movement_phase == IDLE)
         {
-        	ref_fi = ref_fi - M_PI;
+			ref_fi = atan2f(global_goal_y - cy, global_goal_x - cx);
+			if (dir == BACKWARDS)
+			{
+				ref_fi = ref_fi - M_PI;
+			}
         }
+        else if (movement_phase == SPIN)
+        {
+        	ref_fi = spin_start_angle + spin_target;
+        }
+
 		float dx = global_goal_x - cx;
 		float dy = global_goal_y - cy;
 		remaining = sqrtf(dx*dx + dy*dy);
 
-		if (!read_sensors() || movement_phase == ROTATION)
-		{
-			if (sys_t % 10 == 0)
+		if (sys_t % 10 == 0)
 			{
-				if(movement_phase == ROTATION){
-					v_ref2 = calculate_angular_trapezoid(800, MAX_ANG_ACCEL, cfi, ref_fi, &movement_phase);
-				}
-				else if(movement_phase == TRANSLATION){
-					v_ref2 = calculate_trapezoid(800, MAX_ACCEL, cx, cy, global_goal_x, global_goal_y, &movement_phase);
-				}
+			if(movement_phase == ROTATION){
+				movement_phase = ROTATION;
+				v_ref2 = calculate_angular_trapezoid(800, MAX_ANG_ACCEL, cfi, ref_fi, &movement_phase);
+			}
+			else if(movement_phase == TRANSLATION){
+				movement_phase = TRANSLATION;
+				v_ref2 = calculate_trapezoid(800, MAX_ACCEL, cx, cy, global_goal_x, global_goal_y, &movement_phase);
+			}
+			else if (movement_phase == SPIN)
+			{
+				movement_phase = SPIN;
+				float angle_turned = get_unwrapped_fi() - spin_start_angle;
+				v_ref2 = calculate_spin_trapezoid(800, MAX_ANG_ACCEL, angle_turned, spin_target, &movement_phase);
 			}
 		}
-		else
-		{
-			v_ref2 = 0;
-			reset_move_profiles();
-		}
-//        movement_PID(v_ref2, &movement_phase, MAX_ACCEL, global_goal_x, global_goal_y, ref_fi, dir);
 
+        movement_PID(v_ref2, &movement_phase, MAX_ACCEL, global_goal_x, global_goal_y, ref_fi, dir);
         sys_t = (sys_t >= 10) ? 0 : sys_t + 1;
 
     }
@@ -237,6 +275,16 @@ void navigate(float tx, float ty, int8_t direction) {
 
 }
 
+void spin_robot(float num_circles) {
+    reset_PID();
+    reset_move_profiles();
+
+    spin_start_angle = get_unwrapped_fi(); // Get current absolute angle
+    spin_target = num_circles * 2.0f * M_PI;
+
+    movement_phase = SPIN;
+}
+
 bool read_sensors()
 {
 	if(GPIOC->IDR & GPIO_PIN_8)
@@ -251,6 +299,35 @@ bool read_sensors()
 		sensor_filter_counter = 0;
 		return false;
 	}
+}
+
+void turn_crates()
+{
+    uint8_t inputVal = (GPIOB->IDR >> 12) & 0x0F;
+
+    switch (inputVal)
+    {
+        case 0x01:
+//        	uso = true;
+            PWM_SetServo_Position(1, 180);
+            break;
+
+        case 0x02:
+            //
+            break;
+
+        case 0x04:
+            // __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 2500);
+            break;
+
+        case 0x08:
+            // Use TIM2_CH2 or similar here.
+            break;
+
+        default:
+        	//
+            break;
+    }
 }
 
 /**
@@ -343,10 +420,6 @@ static void MX_TIM1_Init(void)
   sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
   sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
   if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
   {
     Error_Handler();
   }
@@ -586,9 +659,9 @@ static void MX_TIM9_Init(void)
 
   /* USER CODE END TIM9_Init 1 */
   htim9.Instance = TIM9;
-  htim9.Init.Prescaler = 0;
+  htim9.Init.Prescaler = 200-1;
   htim9.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim9.Init.Period = 65535;
+  htim9.Init.Period = 8400-1;
   htim9.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim9.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_PWM_Init(&htim9) != HAL_OK)
@@ -646,6 +719,52 @@ static void MX_TIM10_Init(void)
 }
 
 /**
+  * @brief TIM11 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM11_Init(void)
+{
+
+  /* USER CODE BEGIN TIM11_Init 0 */
+
+  /* USER CODE END TIM11_Init 0 */
+
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM11_Init 1 */
+
+  /* USER CODE END TIM11_Init 1 */
+  htim11.Instance = TIM11;
+  htim11.Init.Prescaler = 83;
+  htim11.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim11.Init.Period = 19999;
+  htim11.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim11.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim11) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim11) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim11, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM11_Init 2 */
+
+  /* USER CODE END TIM11_Init 2 */
+  HAL_TIM_MspPostInit(&htim11);
+
+}
+
+/**
   * @brief USART6 Initialization Function
   * @param None
   * @retval None
@@ -668,7 +787,7 @@ static void MX_USART6_UART_Init(void)
   huart6.Init.Mode = UART_MODE_TX_RX;
   huart6.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart6.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart6) != HAL_OK)
+  if (HAL_HalfDuplex_Init(&huart6) != HAL_OK)
   {
     Error_Handler();
   }
@@ -687,7 +806,7 @@ static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
-
+//
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
@@ -718,12 +837,18 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /* USER CODE BEGIN MX_GPIO_Init_2 */
-  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  /*Configure GPIO pins : PB12 PB13 PB14 PB15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+//  GPIO_InitStruct.Pin = GPIO_PIN_1;
+//  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+//  GPIO_InitStruct.Pull = GPIO_NOPULL;
+//  GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
+//  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
   /* USER CODE END MX_GPIO_Init_2 */
 }
 

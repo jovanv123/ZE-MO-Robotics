@@ -28,12 +28,11 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
-#include <motors.h>
+#include "motors.h"
+#include "encoders.h"
+#include "odometry.h"
 #include "PID.h"
 #include "SpeedProfile.h"
-#include <math.h>
-#include <stdbool.h>
-#include "odometry.h"
 #include "board_config.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */

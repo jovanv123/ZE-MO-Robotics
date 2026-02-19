@@ -4,7 +4,7 @@ static float dist_per_tick_r;
 static float dist_per_tick_l;
 static float wheel_base;
 
-static float x = 0.0f, y = 0.0f, fi = 0.0f;
+static float x = 0.0f, y = 0.0f, fi = 0.0f, unwrapped_fi = 0.0f;
 static int32_t last_n_r = 0;
 static int32_t last_n_l = 0;
 static float ds_r = 0.0f, ds_l = 0.0f;
@@ -19,8 +19,8 @@ void odometry_init(float d_r, float d_l, float base) {
 }
 
 void calculate_odometry() {
-    int32_t current_n_r = encoder_get_count_right_motor();
-    int32_t current_n_l = encoder_get_count_left_motor();
+    int32_t current_n_r = encoder_get_count_left_motor();//obrnuo strane za funkcije popraviti posle
+    int32_t current_n_l = encoder_get_count_right_motor();
 
     int32_t dn_r = current_n_r - last_n_r;
     int32_t dn_l = current_n_l - last_n_l;
@@ -38,7 +38,7 @@ void calculate_odometry() {
     x += ds * cosf(fi_mid);
     y += ds * sinf(fi_mid);
     fi += dfi;
-
+    unwrapped_fi += dfi;
     if (fi > M_PI)  fi -= 2.0f * M_PI;
     if (fi < -M_PI) fi += 2.0f * M_PI;
 
@@ -64,6 +64,10 @@ float get_fi() {
     return fi;
 }
 
+float get_unwrapped_fi()
+{
+	return unwrapped_fi;
+}
 void set_x_y(float x_p, float y_p, float fi_p) {
     x = x_p;
     y = y_p;

@@ -13,6 +13,7 @@
 #include "odometry.h"
 #include "SpeedProfile.h"
 
+void spin(float ref_speed, float current_fi, float ref_fi, int8_t dir);
 void movement_PID(float v_ref, uint8_t *movement_phase, float acceleration, float target_x, float target_y, float target_fi, int8_t dir);
 void speed_PID(float ref_speed, uint8_t movement_phase, float x_ref, float y_ref, float current_x, float current_y, float current_fi, float ref_fi, int8_t dir);
 void reset_PID();

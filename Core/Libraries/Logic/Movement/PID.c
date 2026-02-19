@@ -1,10 +1,10 @@
 #include "PID.h"
 
 float v_ref, v_target;
-float ref_speed_l = 0.0f, err_speed_l = 0.0f, err_speed_l_previous = 0.0f, u_speed_l = 0.0f, Kp_l = 1.0f, Ki_l = 0.01f;
-float ref_speed_r = 0.0f, err_speed_r = 0.0f, err_speed_r_previous = 0.0f, u_speed_r = 0.0f, Kp_r = 1.0f, Ki_r = 0.01f;
+float ref_speed_l = 0.0f, err_speed_l = 0.0f, err_speed_l_previous = 0.0f, u_speed_l = 0.0f, Kp_l = 1.7f, Ki_l = 0.01f;
+float ref_speed_r = 0.0f, err_speed_r = 0.0f, err_speed_r_previous = 0.0f, u_speed_r = 0.0f, Kp_r = 1.7f, Ki_r = 0.01f;
 float err_fi = 0.0f, err_fi_previous = 0.0f;
-float Kp_correction = 55.0f, Ki_correction = 0.01f, u_correction = 0.0f;
+float Kp_correction = 62.178f, Ki_correction = 0.01f, u_correction = 0.0f;
 extern volatile float cx, cy, cfi, c_speedl, c_speedr;
 float final_out_r = 0.0f, final_out_l = 0.0f;
 
@@ -12,6 +12,10 @@ void movement_PID(float v_ref, uint8_t *movement_phase, float acceleration, floa
 {
     switch (*movement_phase)
     {
+    case SPIN:
+    	spin(v_ref, get_unwrapped_fi(), ref_fi, dir);
+    	break;
+
     case ROTATION:
         speed_PID(v_ref, ROTATION, target_x, target_y, cx, cy, cfi, ref_fi, dir);
         break;
@@ -24,6 +28,43 @@ void movement_PID(float v_ref, uint8_t *movement_phase, float acceleration, floa
         speed_PID(0, IDLE, target_x, target_y, cx, cy, cfi, ref_fi, dir);
         break;
     }
+}
+
+void spin(float ref_speed, float current_fi, float ref_fi, int8_t dir)
+{
+    err_fi = ref_fi - current_fi;
+    if (err_fi < 0)
+    {
+    	ref_speed_r = -ref_speed;
+	    ref_speed_l =  ref_speed;
+    }
+    else
+    {
+    	ref_speed_r =  ref_speed;
+		ref_speed_l = -ref_speed;
+    }
+    err_speed_r = ref_speed_r - c_speedr;
+    err_speed_l = ref_speed_l - c_speedl;
+
+
+    float du_r = Kp_r * (err_speed_r - err_speed_r_previous) + Ki_r * err_speed_r;
+    u_speed_r += du_r;
+    u_speed_r = fminf(fmaxf(u_speed_r, -1000.0f), 1000.0f);
+    err_speed_r_previous = err_speed_r;
+
+    float du_l = Kp_l * (err_speed_l - err_speed_l_previous) + Ki_l * err_speed_l;
+    u_speed_l += du_l;
+    u_speed_l = fminf(fmaxf(u_speed_l, -1000.0f), 1000.0f);
+    err_speed_l_previous = err_speed_l;
+
+    err_fi_previous = err_fi;
+
+    final_out_l = fminf(fmaxf(u_speed_l, -1000.0f), 1000.0f);
+    final_out_r = fminf(fmaxf(u_speed_r, -1000.0f), 1000.0f);
+
+    PWM_SetSpeed_Left(final_out_l);
+    PWM_SetSpeed_Right(final_out_r);
+
 }
 
 void speed_PID(float ref_speed, uint8_t movement_phase, float x_ref, float y_ref, float current_x, float current_y, float current_fi, float ref_fi, int8_t dir)

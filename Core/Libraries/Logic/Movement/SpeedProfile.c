@@ -2,6 +2,7 @@
 
 
 float rots1, rots2, s1, s2, s3, total_path, distance_traveled, x_current, y_current, x_beginning, y_beginning;
+static float s_total_angle, s_peak_vel, s_1, s_2;
 //static float profile_v = 0.0f;
 //static float profile_a = 0.0f;
 //static float jerk = 0.0f;
@@ -10,6 +11,7 @@ float peak_vel, peak_ang_vel;
 static bool is_rotating = false;
 static bool is_braking = false;
 static bool is_moving = false;
+static bool is_spinning = false;
 
 float target_speed, target_v;
 float start_x, start_y;
@@ -57,9 +59,10 @@ float calculate_trapezoid(float max_vel, float max_accel, float cx, float cy, fl
 
     if (path_so_far < s1) {
         target_v = sqrtf(2.0f * max_accel * path_so_far) + 10.0f;
-    } else if (path_so_far > (s1 + s2)) {
+    } else if (path_so_far >= (s1 + s2)) {
 
-        target_v = sqrtf(pow(peak_vel, 2) - 2.0f * max_accel*(path_so_far - s1 - s2));
+        target_v = sqrt(pow(peak_vel, 2) - 2.0f * max_accel*(path_so_far - s1 - s2));
+
     } else {
         target_v = peak_vel;
     }
@@ -122,8 +125,47 @@ float get_remaining()
 	return remaining2;
 }
 
+float calculate_spin_trapezoid(float max_ang_vel, float ang_accel, float relative_fi, float target_relative_fi, uint8_t *phase)
+{
+    if (!is_spinning) {
+        s_total_angle = fabsf(target_relative_fi);
+        s_1 = (max_ang_vel * max_ang_vel) / (2.0f * ang_accel);
+
+        if (2.0f * s_1 > s_total_angle) {
+            s_1 = s_total_angle / 2.0f;
+            s_2 = 0.0f;
+            s_peak_vel = sqrtf(2.0f * ang_accel * s_1);
+        } else {
+            s_2 = s_total_angle - 2.0f * s_1;
+            s_peak_vel = max_ang_vel;
+        }
+        is_spinning = true;
+    }
+
+    float moved = fabsf(relative_fi);
+
+    if (moved >= s_total_angle) {
+        is_spinning = false;
+        *phase = IDLE;
+        reset_PID();
+        return 0.0f;
+    }
+
+    float out_v;
+    if (moved < s_1) {
+        out_v = sqrtf(2.0f * ang_accel * moved) + 10.0f;
+    } else if (moved > (s_1 + s_2)) {
+        out_v = sqrtf(pow(s_peak_vel, 2) - 2.0f * ang_accel * (moved - s_1 - s_2));
+    } else {
+        out_v = s_peak_vel;
+    }
+
+    return (out_v > s_peak_vel) ? s_peak_vel : out_v;
+}
+
 void reset_move_profiles() {
     is_rotating = false;
     is_moving = false;
     is_braking = false;
+    is_spinning = false;
 }

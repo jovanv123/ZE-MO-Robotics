@@ -23,6 +23,8 @@ float get_x();
 
 float get_y();
 
+float get_unwrapped_fi();
+
 float get_fi();
 
 float get_w_r();

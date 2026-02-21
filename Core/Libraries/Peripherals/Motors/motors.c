@@ -9,6 +9,15 @@
 int debug;
 volatile uint32_t debug_ODR_A;
 volatile uint32_t ccr_val;
+extern volatile bool ax_moving;
+
+volatile float current_position = 0, current_position_back = 0;
+volatile int step_counter = 0, step_counter_back = 0;
+volatile int pwm_active = 0, pwm_active_back = 0;
+float target_pos = 0, target_pos_back = 0;
+int nmbr_of_steps = 0, nmbr_of_steps_back = 0;
+volatile bool stepper_moving = false, stepper_back_moving = false;
+
 void PWM_Init()
 {
 	__HAL_TIM_SET_COMPARE(&MOTOR_PWM_TIMER1, TIM_CHANNEL_1, 0);
@@ -19,7 +28,7 @@ void PWM_Init()
 	HAL_TIM_PWM_Start(&MOTOR_PWM_TIMER2, TIM_CHANNEL_2);//Desni tocak
 	HAL_TIM_PWM_Start(&SERVO_TIMER, TIM_CHANNEL_1);
 
-//	__HAL_TIM_MOE_ENABLE(&SERVO_TIMER);
+	__HAL_TIM_MOE_ENABLE(&htim1);
 }
 
 void PWM_SetSpeed_Left(float speed)
@@ -85,6 +94,34 @@ void PWM_SetServo_Position(uint32_t servo_number, uint16_t angle)
 	default:
 		break;
 	}
+}
+void move_step_motors(float target)
+{
+	target_pos = target;
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, (target_pos > current_position) ? 0 : 1);
+
+	float delta = fabs(target_pos - current_position);
+	nmbr_of_steps = (int)((delta / 8.0f) * 200.0f);
+
+	step_counter = 0;
+	pwm_active = 1;
+	stepper_moving = true;
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+	HAL_TIM_Base_Start_IT(&htim1);
+}
+
+void move_step_back(float target_back) {
+    target_pos_back = target_back;
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, (target_pos_back > current_position_back) ? 0 : 1);
+
+    float delta_back = fabs(target_pos_back - current_position_back);
+    nmbr_of_steps_back = (int)((delta_back / 8.0f) * 200.0f);
+
+    step_counter_back = 0;
+    pwm_active_back = 1;
+    stepper_back_moving = true;
+    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
+    HAL_TIM_Base_Start_IT(&htim1);
 }
 
 void move_AX(uint8_t id, float degrees, float speed_percent)
@@ -303,9 +340,25 @@ void move_AX_Wheels_Sync_Limited(uint8_t id1, float speed1, uint8_t id2, float s
     HAL_UART_Transmit(&huart6, packet, 18, 100);
 }
 
+void receive_message(uint8_t id, uint8_t* rx_dma_buffer)
+{
+    uint8_t packet[8] = {0xFF, 0xFF, id, 0x04, 0x02, 0x28, 0x02, 0x00};
+
+    uint32_t checksum = packet[2] + packet[3] + packet[4] + packet[5] + packet[6];
+    packet[7] = (uint8_t)(~(checksum) & 0xFF);
+
+    __HAL_UART_CLEAR_OREFLAG(&huart6);
+    HAL_UART_Receive_DMA(&huart6, rx_dma_buffer, 8);
+
+    HAL_UART_Transmit(&huart6, packet, 8, 10);
+    HAL_HalfDuplex_EnableReceiver(&huart6);
+
+
+}
+
 void Stop_Motors()
 {
 	MOTOR_PWM_TIMER1.Instance->CCR1 = 0;
 	MOTOR_PWM_TIMER2.Instance->CCR2 = 0;
 }
-//Potreban jos jedan 4-kanalni PWM
+

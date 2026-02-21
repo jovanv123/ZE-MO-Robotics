@@ -10,7 +10,8 @@
 #include "stm32f4xx_hal.h"
 
 extern TIM_HandleTypeDef htim5, htim4, htim3, htim2, htim1, htim9, htim10, htim11;
-extern UART_HandleTypeDef huart6;
+extern UART_HandleTypeDef huart6, huart2;
+
 #define FRONT 1
 #define BACK 2
 #define TRANSLATION 2
@@ -40,13 +41,13 @@ extern UART_HandleTypeDef huart6;
 
 //Step Motors (Lift)
 
-#define STEP_MOTOR_PWM_TIMER
+#define STEP_MOTOR_PWM_TIMER htim1
 
-#define STEP_MOTOR1_PWM_PIN
-#define STEP_MOTOR1_PWM_PORT
+#define STEP_MOTOR1_PWM_PIN GPIO_PIN_4
+#define STEP_MOTOR1_PWM_PORT GPIOC
 
-#define STEP_MOTOR2_PWM_PIN
-#define STEP_MOTOR2_PWM_PORT
+#define STEP_MOTOR2_PWM_PIN GPIO_PIN_5
+#define STEP_MOTOR2_PWM_PORT GPIOC
 
 //Servo Motors + AX servo motors
 

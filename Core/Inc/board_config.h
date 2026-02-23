@@ -31,7 +31,7 @@ extern UART_HandleTypeDef huart6, huart2;
 
 #define MOTOR_PWM_TIMER1 	htim4
 #define MOTOR_PWM_TIMER2 	htim3
-#define PWM_MAX_VALUE 		1049
+#define PWM_MAX_VALUE 		399
 
 #define MOTOR_LEFT_DIR_PIN		GPIO_PIN_9
 #define MOTOR_LEFT_DIR_PORT		GPIOA
@@ -56,8 +56,8 @@ extern UART_HandleTypeDef huart6, huart2;
 #define FRONT_ROTATOR_AX 21
 #define BACK_ROTATOR_AX 20
 
-#define RIGHT_PUSHER_AX 11
-#define LEFT_PUSHER_AX 10
+#define RIGHT_PUSHER_AX 60
+#define LEFT_PUSHER_AX 61
 
 #define RIGHT_LEADSCREW_AX 51
 #define LEFT_LEADSCREW_AX 50
@@ -74,11 +74,11 @@ extern UART_HandleTypeDef huart6, huart2;
 #define FRONT_ROTATOR_OPENED 120
 #define FRONT_ROTATOR_CLOSED 55
 
-#define LEFT_PUSHER_CLOSED 0
-#define LEFT_PUSHER_OPENEDED 60
+#define LEFT_PUSHER_CLOSED 70
+#define LEFT_PUSHER_OPENED 0
 
-#define RIGHT_PUSHER_CLOSED 260
-#define RIGHT_PUSHER_OPENED 200
+#define RIGHT_PUSHER_CLOSED 150
+#define RIGHT_PUSHER_OPENED 220
 
 //Encoder Wheels
 #define ENC_LEFT_TIMER 		htim2
@@ -91,6 +91,6 @@ extern UART_HandleTypeDef huart6, huart2;
 
 //UART
 
-#define SYS_CLOCK_MHZ 84
+#define SYS_CLOCK_MHZ 16
 
 #endif /* INC_BOARD_CONFIG_H_ */

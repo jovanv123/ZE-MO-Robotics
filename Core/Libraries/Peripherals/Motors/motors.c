@@ -101,7 +101,7 @@ void move_step_motors(float target)
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, (target_pos > current_position) ? 0 : 1);
 
 	float delta = fabs(target_pos - current_position);
-	nmbr_of_steps = (int)((delta / 8.0f) * 200.0f);
+	nmbr_of_steps = (int)((delta / 8) * 200);
 
 	step_counter = 0;
 	pwm_active = 1;
@@ -115,7 +115,7 @@ void move_step_back(float target_back) {
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_4, (target_pos_back > current_position_back) ? 0 : 1);
 
     float delta_back = fabs(target_pos_back - current_position_back);
-    nmbr_of_steps_back = (int)((delta_back / 8.0f) * 200.0f);
+    nmbr_of_steps_back = (int)((delta_back / 8) * 200);
 
     step_counter_back = 0;
     pwm_active_back = 1;

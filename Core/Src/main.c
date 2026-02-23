@@ -71,7 +71,7 @@ void navigate(float tx, float ty, int8_t direction);
 void spin_robot(float num_circles);
 void move_AX_Wheels_SyncTime(uint8_t id1, float speed1, uint8_t id2, float speed2, int time);
 /* USER CODE END PFP */
-
+uint32_t freq;
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 volatile float ref_fi;
@@ -113,6 +113,7 @@ int main(void)
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
+	HAL_Init();
 
 
 
@@ -141,69 +142,103 @@ int main(void)
   odometry_init(81.54, 81.54, 424.77);
   HAL_TIM_Base_Start_IT(&htim10);
   /* USER CODE END 2 */
-
   int state = 0;
-  while (1)
-  {
+  /* Infinite loop */
+    /* USER CODE BEGIN WHILE */
+    while (1)
+    {
+      switch (state)
+      {
+        case 0:
+          // Start moving lead screws
+//          move_AX_Servo_Sync(FRONT_ROTATOR_AX, FRONT_ROTATOR_CLOSED, BACK_ROTATOR_AX, BACK_ROTATOR_CLOSED, 100);
+//        	PWM_SetServo_Position(1, 0);
+//          move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, -100, RIGHT_LEADSCREW_AX, -100, 3250);
+//    		move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, -100, RIGHT_LEADSCREW_AX, -100, 3250);
+//    		move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, -100, RIGHT_LEADSCREW_AX, -100, 3250);
 
+        	move_AX_Servo_Sync(LEFT_PUSHER_AX, LEFT_PUSHER_OPENED, RIGHT_PUSHER_AX, RIGHT_PUSHER_OPENED, 100);
+        	HAL_Delay(1000);
+//          navigate(600, 0, FORWARDS);
+//        	move_step_motors(50.0);
+          state++;
+          break;
 
-	  switch (state)
-	  {
-	  	  case 0:
+        case 1:
+//          // Wait for all motors to finish their current task
+//          if (!stepper_moving && !stepper_back_moving && !ax_moving)
+//          {
+////            state++;
+//          }
+//            if (movement_phase == IDLE && !stepper_moving && !stepper_back_moving)
+//            {
+          	move_AX_Servo_Sync(LEFT_PUSHER_AX, LEFT_PUSHER_CLOSED, RIGHT_PUSHER_AX, RIGHT_PUSHER_CLOSED, 100);
+          	HAL_Delay(1000);
+              state++;
+//            }
+          break;
 
-	  		  move_step_back(70.0);
+        case 2:
+//        	if (!stepper_moving && !stepper_back_moving && !ax_moving)
+//        	{
+        		move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, 100, RIGHT_LEADSCREW_AX, 100, 3250);
+				state++;
+//        	}
+          break;
 
-	  		  state++;
-	  		  break;
-	  	  case 1:
-	  		  state++;
-	  		  break;
-	  	  case 2:
+        case 3:
+          // Wait for steppers, then open rotators
+          if (!stepper_moving && !stepper_back_moving && !ax_moving)
+          {
+            move_step_motors(20.0);
+            move_step_back(20.0);
+            move_AX_Servo_Sync(FRONT_ROTATOR_AX, FRONT_ROTATOR_OPENED, BACK_ROTATOR_AX, BACK_ROTATOR_OPENED, 100);
 
-	  		  break;
-	  	  case 3:
-	  		  if (movement_phase == IDLE)
-	  		  {
-//	  			navigate(0, 0, FORWARDS);
-	  			state++;
-	  		  }
-	  		  break;
-	  	  case 4:
-	  		  if (movement_phase == IDLE)
-	  		  {
-//	  			  navigate(1, 0, FORWARDS);
-	  		  	  state++;
-	  		  }
-	  		  break;
-	  	  case 5:
-	  		  if (movement_phase == IDLE)
-	  		  {
-//	  			navigate(0, 0, FORWARDS);
-	  			state++;
-	  		  }
-	  		  break;
-	  	  case 6:
-	  		  if (movement_phase == IDLE)
-	  		  {
-//	  			navigate(500, 0, BACKWARDS);
-	  			state++;
-	  		  }
-	  		  break;
-	  	  case 7:
-	  		  if (movement_phase == IDLE)
-	  		  {
-//	  			navigate(0, 0, BACKWARDS);
-	  			state++;
-	  		  }
-	  		  break;
+          }
+          break;
 
-	  }
-  }
+        case 4:
+          if (!stepper_moving && !stepper_back_moving && !ax_moving)
+          {
+        	PWM_SetServo_Position(1, 0);
+            state++;
+          }
+          break;
+
+        case 5:
+          // Navigation states (currently commented out in your logic)
+          if (movement_phase == IDLE)
+          {
+            state++;
+          }
+          break;
+
+        case 6:
+          if (movement_phase == IDLE)
+          {
+            state++;
+          }
+          break;
+
+        case 7:
+          if (movement_phase == IDLE)
+          {
+            state++; // Sequence Complete
+          }
+          break;
+
+        default:
+          // Optional: Reset or stay in IDLE
+          break;
+      }
+      /* USER CODE END WHILE */
+
+      /* USER CODE BEGIN 3 */
+    }
+
 
 }
-float debug3, debug4;
 
-// Inside TIM10 Callback
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance == TIM10)
@@ -237,17 +272,17 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			{
 			if(movement_phase == ROTATION){
 				movement_phase = ROTATION;
-				v_ref2 = calculate_angular_trapezoid(800, MAX_ANG_ACCEL, cfi, ref_fi, &movement_phase);
+				v_ref2 = calculate_angular_trapezoid(400, MAX_ANG_ACCEL, cfi, ref_fi, &movement_phase);
 			}
 			else if(movement_phase == TRANSLATION){
 				movement_phase = TRANSLATION;
-				v_ref2 = calculate_trapezoid(800, MAX_ACCEL, cx, cy, global_goal_x, global_goal_y, &movement_phase);
+				v_ref2 = calculate_trapezoid(400, MAX_ACCEL, cx, cy, global_goal_x, global_goal_y, &movement_phase);
 			}
 			else if (movement_phase == SPIN)
 			{
 				movement_phase = SPIN;
 				float angle_turned = get_unwrapped_fi() - spin_start_angle;
-				v_ref2 = calculate_spin_trapezoid(800, MAX_ANG_ACCEL, angle_turned, spin_target, &movement_phase);
+				v_ref2 = calculate_spin_trapezoid(400, MAX_ANG_ACCEL, angle_turned, spin_target, &movement_phase);
 			}
 		}
 
@@ -258,6 +293,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 		if (ax_moving && sys_tax % designated_time == 0)
 		{
+			designated_time = 0;
 			move_AX_Wheels_Sync(LEFT_LEADSCREW_AX, 0, RIGHT_LEADSCREW_AX, 0);
 			sys_tax = 0;
 			ax_moving = false;
@@ -364,11 +400,10 @@ void turn_crates()
 
 void move_AX_Wheels_SyncTime(uint8_t id1, float speed1, uint8_t id2, float speed2, int time)
 {
-    designated_time = time;
-    sys_tax = 0;
-    move_AX_Wheels_Sync(id1, speed1, id2, speed2);
-    ax_moving = true;
-
+		designated_time = time;
+		sys_tax = 0;
+		move_AX_Wheels_Sync(id1, speed1, id2, speed2);
+		ax_moving = true;
 }
 void SystemClock_Config(void)
 {
@@ -433,7 +468,7 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 83;
+  htim1.Init.Prescaler = 15;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim1.Init.Period = 999;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -559,9 +594,9 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 1;
+  htim3.Init.Prescaler = 0;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 1049;
+  htim3.Init.Period = 400-1;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
@@ -612,9 +647,9 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 1;
+  htim4.Init.Prescaler = 0;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 1049;
+  htim4.Init.Period = 400-1;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_PWM_Init(&htim4) != HAL_OK)
@@ -753,7 +788,7 @@ static void MX_TIM10_Init(void)
 
   /* USER CODE END TIM10_Init 1 */
   htim10.Instance = TIM10;
-  htim10.Init.Prescaler = 83;
+  htim10.Init.Prescaler = 15;
   htim10.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim10.Init.Period = 999;
   htim10.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -786,9 +821,9 @@ static void MX_TIM11_Init(void)
 
   /* USER CODE END TIM11_Init 1 */
   htim11.Instance = TIM11;
-  htim11.Init.Prescaler = 200-1;
+  htim11.Init.Prescaler = 15;
   htim11.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim11.Init.Period = 8400-1;
+  htim11.Init.Period = 19999;
   htim11.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim11.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim11) != HAL_OK)

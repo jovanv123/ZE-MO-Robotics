@@ -113,6 +113,7 @@ int main(void)
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
+
 	HAL_Init();
 
 
@@ -145,55 +146,53 @@ int main(void)
   int state = 0;
   /* Infinite loop */
     /* USER CODE BEGIN WHILE */
+//  move_step_motors(50.0);
+//  move_step_back(50.0);
     while (1)
     {
       switch (state)
       {
         case 0:
           // Start moving lead screws
-//          move_AX_Servo_Sync(FRONT_ROTATOR_AX, FRONT_ROTATOR_CLOSED, BACK_ROTATOR_AX, BACK_ROTATOR_CLOSED, 100);
 //        	PWM_SetServo_Position(1, 0);
-//          move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, -100, RIGHT_LEADSCREW_AX, -100, 3250);
-//    		move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, -100, RIGHT_LEADSCREW_AX, -100, 3250);
-//    		move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, -100, RIGHT_LEADSCREW_AX, -100, 3250);
+          move_AX_Servo_Sync(FRONT_ROTATOR_AX, FRONT_ROTATOR_CLOSED, BACK_ROTATOR_AX, BACK_ROTATOR_CLOSED, 100);
+		  move_AX_Servo_Sync(LEFT_PUSHER_AX, LEFT_PUSHER_CLOSED, RIGHT_PUSHER_AX, RIGHT_PUSHER_CLOSED, 100);
 
-        	move_AX_Servo_Sync(LEFT_PUSHER_AX, LEFT_PUSHER_OPENED, RIGHT_PUSHER_AX, RIGHT_PUSHER_OPENED, 100);
-        	HAL_Delay(1000);
-//          navigate(600, 0, FORWARDS);
-//        	move_step_motors(50.0);
+    	  move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, -100, RIGHT_LEADSCREW_AX, -100, 4500);
+//          navigate(700, 0, FORWARDS);
+//          move_step_motors(50.0);
           state++;
           break;
 
         case 1:
-//          // Wait for all motors to finish their current task
-//          if (!stepper_moving && !stepper_back_moving && !ax_moving)
-//          {
-////            state++;
-//          }
 //            if (movement_phase == IDLE && !stepper_moving && !stepper_back_moving)
 //            {
-          	move_AX_Servo_Sync(LEFT_PUSHER_AX, LEFT_PUSHER_CLOSED, RIGHT_PUSHER_AX, RIGHT_PUSHER_CLOSED, 100);
-          	HAL_Delay(1000);
-              state++;
+//				move_AX_Servo_Sync(LEFT_PUSHER_AX, LEFT_PUSHER_OPENED, RIGHT_PUSHER_AX, RIGHT_PUSHER_OPENED, 100);
+//				move_step_motors(0.0);
+//				state++;
 //            }
           break;
 
         case 2:
-//        	if (!stepper_moving && !stepper_back_moving && !ax_moving)
-//        	{
+        	if (!stepper_moving && !stepper_back_moving && !ax_moving)
+        	{
         		move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, 100, RIGHT_LEADSCREW_AX, 100, 3250);
+
+
 				state++;
-//        	}
+        	}
           break;
 
         case 3:
           // Wait for steppers, then open rotators
           if (!stepper_moving && !stepper_back_moving && !ax_moving)
           {
-            move_step_motors(20.0);
-            move_step_back(20.0);
+        	  move_AX_Servo_Sync(LEFT_PUSHER_AX, LEFT_PUSHER_CLOSED, RIGHT_PUSHER_AX, RIGHT_PUSHER_CLOSED, 100);
             move_AX_Servo_Sync(FRONT_ROTATOR_AX, FRONT_ROTATOR_OPENED, BACK_ROTATOR_AX, BACK_ROTATOR_OPENED, 100);
 
+            move_step_motors(35.0);
+            move_step_back(35.0);
+            state++;
           }
           break;
 
@@ -206,7 +205,6 @@ int main(void)
           break;
 
         case 5:
-          // Navigation states (currently commented out in your logic)
           if (movement_phase == IDLE)
           {
             state++;
@@ -223,17 +221,14 @@ int main(void)
         case 7:
           if (movement_phase == IDLE)
           {
-            state++; // Sequence Complete
+            state++;
           }
           break;
 
         default:
-          // Optional: Reset or stay in IDLE
           break;
       }
-      /* USER CODE END WHILE */
 
-      /* USER CODE BEGIN 3 */
     }
 
 
@@ -272,11 +267,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			{
 			if(movement_phase == ROTATION){
 				movement_phase = ROTATION;
-				v_ref2 = calculate_angular_trapezoid(400, MAX_ANG_ACCEL, cfi, ref_fi, &movement_phase);
+				v_ref2 = calculate_angular_trapezoid(600, MAX_ANG_ACCEL, cfi, ref_fi, &movement_phase);
 			}
 			else if(movement_phase == TRANSLATION){
 				movement_phase = TRANSLATION;
-				v_ref2 = calculate_trapezoid(400, MAX_ACCEL, cx, cy, global_goal_x, global_goal_y, &movement_phase);
+				v_ref2 = calculate_trapezoid(600, MAX_ACCEL, cx, cy, global_goal_x, global_goal_y, &movement_phase);
 			}
 			else if (movement_phase == SPIN)
 			{

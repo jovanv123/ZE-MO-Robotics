@@ -19,7 +19,7 @@ extern UART_HandleTypeDef huart6, huart2;
 #define SPIN 4
 #define IDLE 3
 #define MAX_JERK  8000.0f
-#define MAX_ACCEL 700.0f
+#define MAX_ACCEL 500.0f
 #define MAX_ANG_ACCEL 150000.0f
 #define TRAPEZOID 1
 #define S_CURVE 2

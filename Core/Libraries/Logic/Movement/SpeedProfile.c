@@ -58,7 +58,7 @@ float calculate_trapezoid(float max_vel, float max_accel, float cx, float cy, fl
         }
 
     if (path_so_far < s1) {
-        target_v = sqrtf(2.0f * max_accel * path_so_far) + 30.0f;
+        target_v = sqrtf(2.0f * max_accel * path_so_far) + 10.0f;
     } else if (path_so_far >= (s1 + s2)) {
 
         target_v = sqrt(pow(peak_vel, 2) - 2.0f * max_accel*(path_so_far - s1 - s2));

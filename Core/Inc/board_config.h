@@ -19,7 +19,7 @@ extern UART_HandleTypeDef huart6, huart2;
 #define SPIN 4
 #define IDLE 3
 #define MAX_JERK  8000.0f
-#define MAX_ACCEL 500.0f
+#define MAX_ACCEL 200.0f
 #define MAX_ANG_ACCEL 150000.0f
 #define TRAPEZOID 1
 #define S_CURVE 2
@@ -53,7 +53,7 @@ extern UART_HandleTypeDef huart6, huart2;
 
 #define SERVO_TIMER		htim11
 
-#define FRONT_ROTATOR_AX 21
+#define FRONT_ROTATOR_AX 21 // id ax-eva
 #define BACK_ROTATOR_AX 20
 
 #define RIGHT_PUSHER_AX 60

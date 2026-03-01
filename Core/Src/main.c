@@ -21,6 +21,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../Inc/SpeedProfile.h"
+#include "board_config.h"
+#include "../Inc/motors.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -160,6 +162,10 @@ int main(void) {
 //	100, 4800);
 //  }
 //  move_step_motors(0.0);
+
+
+
+
 	while (1) {
 		switch (state) {
 		case 0:
@@ -173,10 +179,14 @@ int main(void) {
 
 //			move_AX_Servo_Sync(LEFT_STORAGE_AX, LEFT_STORAGE_OFF, RIGHT_STORAGE_AX, RIGHT_STORAGE_OFF, 100);
 //			move_step_motors(35.0);
-//			move_step_back(35.0);
-//			move_AX_Wheels_SyncTime(LEFT_STORAGE_AX, 100, RIGHT_STORAGE_AX, 100, 3000);
+//			move_step_back(35.0)
+//			move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, -100, RIGHT_LEADSCREW_AX, -100, 3000);
+			move_AX_Servo_Sync(LEFT_STORAGE_AX,300,RIGHT_STORAGE_AX,300,100);
 
-			move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, 100, RIGHT_LEADSCREW_AX, 100, 2500);
+			move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, 100, RIGHT_LEADSCREW_AX, 100, 3200);
+
+			move_AX_Servo_Sync(1,191,2,70,100);
+//			move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, 100, RIGHT_LEADSCREW_AX, 100, 2500);
 //			navigate(700, 0, FORWARDS, 800, 1000);
 //			move_step_motors(50.0);
 //			set_AX_WheelMode(LEFT_STORAGE_AX, 1);
@@ -201,7 +211,8 @@ int main(void) {
 			if (!stepper_moving
 					&& !stepper_back_moving && !ax_moving) {
 
-				move_AX_Wheels_SyncTime(LEFT_STORAGE_AX, -100, RIGHT_STORAGE_AX, -100, 3000);
+//				move_AX_Wheels_SyncTime(LEFT_STORAGE_AX, -100, RIGHT_STORAGE_AX, -100, 3000);
+				move_AX_Servo_Sync(LEFT_STORAGE_AX,0,RIGHT_STORAGE_AX,0,100);
 
 //				move_AX_Servo_Sync(LEFT_PUSHER_AX, LEFT_PUSHER_OPENED,
 //				RIGHT_PUSHER_AX, RIGHT_PUSHER_OPENED, 100);
@@ -214,7 +225,9 @@ int main(void) {
 		case 3:
 			// Wait for steppers, then open rotators
 			if (!stepper_moving && !stepper_back_moving && !ax_moving) {
+				move_AX_Servo_Sync(1,1,2,280,100);
 				move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, -100, RIGHT_LEADSCREW_AX, -100, 3000);
+
 //				move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, 100,
 //				RIGHT_LEADSCREW_AX, 100, 3200);
 //				navigate(800, -210, FORWARDS, 600, 600);

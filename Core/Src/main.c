@@ -82,6 +82,11 @@ volatile float spin_start_angle = 0.0f;
 volatile float remaining;
 volatile float cx, cy, cfi, c_speedr, c_speedl;
 float global_goal_x, global_goal_y;
+float dampened_goal_x1, dampened_goal_y1;
+float dampened_goal_x2, dampened_goal_y2;
+float dampened_vel1, dampened_acc1;
+float dampened_vel2, dampened_acc2;
+volatile bool dampened = false;
 uint8_t movement_phase;
 uint8_t rx_dma_buffer[64];
 uint8_t rx_dma_buffer2[64];
@@ -160,31 +165,48 @@ int main(void) {
 		case 0:
 			// Start moving lead screws
 //        	PWM_SetServo_Position(1, 0);
-			move_AX_Servo_Sync(FRONT_ROTATOR_AX, FRONT_ROTATOR_CLOSED,
-			BACK_ROTATOR_AX, BACK_ROTATOR_CLOSED, 100);
-			move_AX_Servo_Sync(LEFT_PUSHER_AX, LEFT_PUSHER_CLOSED,
-			RIGHT_PUSHER_AX, RIGHT_PUSHER_CLOSED, 100);
+//			HAL_Delay(2000);
+//			move_AX_Servo_Sync(FRONT_ROTATOR_AX, FRONT_ROTATOR_OFF,BACK_ROTATOR_AX, BACK_ROTATOR_OFF, 100);
+//			move_AX_Servo_Sync(LEFT_PUSHER_AX, 60, RIGHT_PUSHER_AX, RIGHT_PUSHER_OFF, 100);
+//			HAL_Delay(2000);
+//			move_AX_Servo_Sync(LEFT_PUSHER_AX, LEFT_PUSHER_ON, RIGHT_PUSHER_AX, RIGHT_PUSHER_ON, 100);
 
-			move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, -100, RIGHT_LEADSCREW_AX,
-					-100, 4500);
-			navigate(500, 0, FORWARDS, 800, 400);
-			move_step_motors(50.0);
+//			move_AX_Servo_Sync(LEFT_STORAGE_AX, LEFT_STORAGE_OFF, RIGHT_STORAGE_AX, RIGHT_STORAGE_OFF, 100);
+//			move_step_motors(35.0);
+//			move_step_back(35.0);
+//			move_AX_Wheels_SyncTime(LEFT_STORAGE_AX, 100, RIGHT_STORAGE_AX, 100, 3000);
+
+			move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, 100, RIGHT_LEADSCREW_AX, 100, 2500);
+//			navigate(700, 0, FORWARDS, 800, 1000);
+//			move_step_motors(50.0);
+//			set_AX_WheelMode(LEFT_STORAGE_AX, 1);
+//			HAL_Delay(50);
+//			set_AX_WheelMode(RIGHT_STORAGE_AX, 1);
+//			HAL_Delay(50);
+//			move_AX_Wheels_SyncTime(LEFT_STORAGE_AX, 100, RIGHT_STORAGE_AX, 100, 1700);
 			state++;
 			break;
 
 		case 1:
-			if (movement_phase == IDLE && !stepper_moving
-					&& !stepper_back_moving) {
-				navigate(700, 0, FORWARDS, 200, 300);
+			if (!stepper_moving
+					&& !stepper_back_moving && !ax_moving) {
+//				move_AX_Servo_Sync(LEFT_PUSHER_AX, LEFT_PUSHER_OFF, RIGHT_PUSHER_AX, RIGHT_PUSHER_OFF, 100);
+				move_step_back(88.0);
+				move_step_motors(88.0);
 				state++;
 			}
 			break;
 
 		case 2:
-			if (movement_phase == IDLE) {
-				move_AX_Servo_Sync(LEFT_PUSHER_AX, LEFT_PUSHER_OPENED,
-				RIGHT_PUSHER_AX, RIGHT_PUSHER_OPENED, 100);
-				move_step_motors(0.0);
+			if (!stepper_moving
+					&& !stepper_back_moving && !ax_moving) {
+
+				move_AX_Wheels_SyncTime(LEFT_STORAGE_AX, -100, RIGHT_STORAGE_AX, -100, 3000);
+
+//				move_AX_Servo_Sync(LEFT_PUSHER_AX, LEFT_PUSHER_OPENED,
+//				RIGHT_PUSHER_AX, RIGHT_PUSHER_OPENED, 100);
+//				move_step_motors(0.0);
+//				navigate(800, -710, FORWARDS, 600, 600);
 				state++;
 			}
 			break;
@@ -192,28 +214,33 @@ int main(void) {
 		case 3:
 			// Wait for steppers, then open rotators
 			if (!stepper_moving && !stepper_back_moving && !ax_moving) {
-				move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, 100,
-				RIGHT_LEADSCREW_AX, 100, 3200);
+				move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, -100, RIGHT_LEADSCREW_AX, -100, 3000);
+//				move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, 100,
+//				RIGHT_LEADSCREW_AX, 100, 3200);
+//				navigate(800, -210, FORWARDS, 600, 600);
 				state++;
 			}
 			break;
 
 		case 4:
 			if (!stepper_moving && !stepper_back_moving && !ax_moving) {
-				move_AX_Servo_Sync(LEFT_PUSHER_AX, LEFT_PUSHER_CLOSED,
-				RIGHT_PUSHER_AX, RIGHT_PUSHER_CLOSED, 100);
-				move_AX_Servo_Sync(FRONT_ROTATOR_AX, FRONT_ROTATOR_OPENED,
-				BACK_ROTATOR_AX, BACK_ROTATOR_OPENED, 100);
+//				move_AX_Servo_Sync(LEFT_PUSHER_AX, LEFT_PUSHER_CLOSED,
+//				RIGHT_PUSHER_AX, RIGHT_PUSHER_CLOSED, 100);
+//				move_AX_Servo_Sync(FRONT_ROTATOR_AX, FRONT_ROTATOR_OPENED,
+//				BACK_ROTATOR_AX, BACK_ROTATOR_OPENED, 100);
+//				navigate(360, 0, FORWARDS, 200, 600);
 
-				move_step_motors(30.0);
-				move_step_back(30.0);
-				state++;
+//				move_step_motors(30.0);
+//				move_step_back(30.0);
+//				state++;
 			}
 			break;
 
 		case 5:
 			if (!stepper_moving && !stepper_back_moving && !ax_moving) {
-				PWM_SetServo_Position(0, 1);
+//				PWM_SetServo_Position(0, 1);
+				navigate(0, 0, FORWARDS, 200, 600);
+
 				state++;
 			}
 			break;
@@ -268,9 +295,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 				v_ref2 = calculate_angular_trapezoid(600, MAX_ANG_ACCEL, cfi,
 						ref_fi, &movement_phase);
 			} else if (movement_phase == TRANSLATION) {
-				movement_phase = TRANSLATION;
-				v_ref2 = calculate_trapezoid(des_acc, max_vel, cx, cy,
-						global_goal_x, global_goal_y, &movement_phase);
+//				if (dampened == true)
+//				{
+//
+//				}
+//				else
+//				{
+					movement_phase = TRANSLATION;
+					v_ref2 = calculate_trapezoid(des_acc, max_vel, cx, cy,
+							global_goal_x, global_goal_y, &movement_phase);
+//				}
 			} else if (movement_phase == SPIN) {
 				movement_phase = SPIN;
 				float angle_turned = get_unwrapped_fi() - spin_start_angle;
@@ -286,6 +320,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		if (ax_moving && sys_tax % designated_time == 0) {
 			designated_time = 0;
 			move_AX_Wheels_Sync(LEFT_LEADSCREW_AX, 0, RIGHT_LEADSCREW_AX, 0);
+			move_AX_Wheels_Sync(LEFT_STORAGE_AX, 0, RIGHT_STORAGE_AX, 0);
 			sys_tax = 0;
 			ax_moving = false;
 
@@ -334,6 +369,26 @@ void navigate(float tx, float ty, int8_t direction, float acc, float vel) {
 	movement_phase = ROTATION;
 	des_acc = acc;
 	max_vel = vel;
+	dampened = false;
+}
+
+void navigate_dampened(float tx, float ty, int8_t direction, float acc, float vel, float tx2, float ty2, float acc2, float vel2) {
+
+	reset_PID();
+	reset_move_profiles();
+	start_x1 = cx;
+	start_y1 = cy;
+	dampened_goal_x1 = tx;
+	dampened_goal_y1 = ty;
+	dampened_goal_x2 = tx2;
+	dampened_goal_y2 = ty2;
+	dampened_vel1 = vel;
+	dampened_vel2 = vel2;
+	dampened_acc1 = acc;
+	dampened_acc2 = acc2;
+	dir = direction;
+	dampened = true;
+	movement_phase = ROTATION;
 
 }
 
@@ -843,21 +898,6 @@ static void MX_USART6_UART_Init(void) {
 	/* USER CODE BEGIN USART6_Init 2 */
 
 	/* USER CODE END USART6_Init 2 */
-
-}
-
-/**
- * Enable DMA controller clock
- */
-static void MX_DMA_Init(void) {
-
-	/* DMA controller clock enable */
-	__HAL_RCC_DMA2_CLK_ENABLE();
-
-	/* DMA interrupt init */
-	/* DMA2_Stream1_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
 
 }
 

@@ -77,10 +77,10 @@ extern UART_HandleTypeDef huart6, huart2;
 #define FRONT_ROTATOR_ON 120
 #define FRONT_ROTATOR_OFF 55
 
-#define LEFT_PUSHER_OFF 50//142 //60
-#define LEFT_PUSHER_ON 0 //217 //0
+#define LEFT_PUSHER_OFF 220//142 //60
+#define LEFT_PUSHER_ON 175 //217 //0
 
-#define RIGHT_PUSHER_OFF 160//67 // 150
+#define RIGHT_PUSHER_OFF 165//67 // 150
 #define RIGHT_PUSHER_ON  210 //11  // 210
 
 #define LEFT_STORAGE_ON 0

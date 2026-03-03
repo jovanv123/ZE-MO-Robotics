@@ -11,7 +11,6 @@
 #include <stdbool.h>
 #define PWM_MAX 1049
 
-extern volatile bool ax_moving;
 void PWM_Init(void);
 void PWM_SetSpeed_Left(float speed);
 void PWM_SetSpeed_Right(float speed);

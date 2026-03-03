@@ -37,12 +37,14 @@ extern "C" {
 #include "SpeedProfile.h"
 #include "PID.h"
 #include "odometry.h"
+#include "sequences.h"
 #include "board_config.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
+void move_AX_Wheels_SyncTime(uint8_t id1, float speed1, uint8_t id2,
+		float speed2, int time);
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

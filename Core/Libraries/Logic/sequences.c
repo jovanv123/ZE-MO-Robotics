@@ -35,22 +35,24 @@ void rotators_off()
 
 void storage_on()
 {
-	move_AX_Servo_Sync(LEFT_STORAGE_AX, 0, RIGHT_STORAGE_AX, 0, 100);
+    move_AX_Wheels_SyncTime(LEFT_STORAGE_AX, -100, RIGHT_STORAGE_AX, -100, 2500);
 }
 
 void storage_off()
 {
-	move_AX_Servo_Sync(LEFT_STORAGE_AX, 300, RIGHT_STORAGE_AX, 300, 100);
+    move_AX_Wheels_SyncTime(LEFT_STORAGE_AX, 100, RIGHT_STORAGE_AX, 100, 2500);
 }
 
 void leadscrew_closed(int time)
 {
-	move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, 100, RIGHT_LEADSCREW_AX, 100, time);
+	int move_time = time;
+	move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, 100, RIGHT_LEADSCREW_AX, 100, move_time);
 }
 
 void leadscrew_opened(int time)
 {
-	move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, -100, RIGHT_LEADSCREW_AX, -100, time);
+	int move_time = time;
+	move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, -100, RIGHT_LEADSCREW_AX, -100, move_time);
 }
 
 void plazma_on()

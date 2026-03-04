@@ -31,7 +31,7 @@ extern UART_HandleTypeDef huart6, huart2;
 
 #define MOTOR_PWM_TIMER1 	htim4
 #define MOTOR_PWM_TIMER2 	htim3
-#define PWM_MAX_VALUE 		399
+#define PWM_MAX_VALUE 		2099
 
 #define MOTOR_LEFT_DIR_PIN		GPIO_PIN_9
 #define MOTOR_LEFT_DIR_PORT		GPIOA

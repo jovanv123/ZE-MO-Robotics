@@ -77,8 +77,15 @@ int main(void)
     encoder_init();
     odometry_init(81.54, 81.54, 424.77);
     HAL_TIM_Base_Start_IT(&htim10);
-
-    init_robot(3000);
+    set_AX_WheelMode(LEFT_LEADSCREW_AX, 1);
+    HAL_Delay(20);
+    set_AX_WheelMode(RIGHT_LEADSCREW_AX, 1);
+    HAL_Delay(20);
+    set_AX_WheelMode(LEFT_STORAGE_AX, 1);
+    HAL_Delay(20);
+    set_AX_WheelMode(RIGHT_STORAGE_AX, 1);
+    HAL_Delay(20);
+//    init_robot(3000);
 
     int state = 0;
 
@@ -88,29 +95,32 @@ int main(void)
         switch (state) {
         case 0:
             if (motors_idle) {
-                pushers_on();
-                leadscrew_closed(3000);
+            	pushers_on();
+            	leadscrew_closed(2500);
+            	state++;
+
             }
             break;
         case 1:
             if (motors_idle) {
-                pushers_off();
-                steppers_up();
-                state++;
+            	pushers_off();
+            	steppers_up();
+            	state++;
             }
             break;
         case 2:
             if (motors_idle) {
+
+            	storage_on();
+            	HAL_Delay(1500);
                 plazma_on();
-                HAL_Delay(1500);
-                storage_on();
                 HAL_Delay(1500);
                 state++;
             }
             break;
         case 3:
             if (motors_idle) {
-                leadscrew_opened(3000);
+                leadscrew_opened(2500);
                 state++;
             }
             break;
@@ -124,23 +134,30 @@ int main(void)
             break;
         case 5:
             if (motors_idle) {
+            	pushers_on();
+            	leadscrew_closed(2500);
                 state++;
             }
             break;
         case 6:
             if (motors_idle) {
-                move_AX_Servo_Sync(LEFT_PUSHER_AX, LEFT_PUSHER_OFF,
-                                   RIGHT_PUSHER_AX, RIGHT_PUSHER_OFF, 100);
+            	pushers_off();
+            	move_step_motors(50);
+            	move_step_back(50);
                 state++;
             }
             break;
         case 7:
             if (motors_idle) {
-                state++;
+            	plazma_off();
+				HAL_Delay(1000);
+				storage_off();
+				state++;
             }
             break;
         case 8:
             if (motors_idle) {
+            	steppers_up();
                 state++;
             }
             break;
@@ -317,7 +334,7 @@ static void MX_TIM1_Init(void)
     TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = { 0 };
 
     htim1.Instance                 = TIM1;
-    htim1.Init.Prescaler           = 15;
+    htim1.Init.Prescaler           = 83;
     htim1.Init.CounterMode         = TIM_COUNTERMODE_UP;
     htim1.Init.Period              = 999;
     htim1.Init.ClockDivision       = TIM_CLOCKDIVISION_DIV1;
@@ -391,7 +408,7 @@ static void MX_TIM3_Init(void)
     htim3.Instance               = TIM3;
     htim3.Init.Prescaler         = 0;
     htim3.Init.CounterMode       = TIM_COUNTERMODE_UP;
-    htim3.Init.Period            = 400 - 1;
+    htim3.Init.Period            = 2099;
     htim3.Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;
     htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
     if (HAL_TIM_PWM_Init(&htim3) != HAL_OK) Error_Handler();
@@ -418,7 +435,7 @@ static void MX_TIM4_Init(void)
     htim4.Instance               = TIM4;
     htim4.Init.Prescaler         = 0;
     htim4.Init.CounterMode       = TIM_COUNTERMODE_UP;
-    htim4.Init.Period            = 400 - 1;
+    htim4.Init.Period            = 2099;
     htim4.Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;
     htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
     if (HAL_TIM_PWM_Init(&htim4) != HAL_OK) Error_Handler();
@@ -489,7 +506,7 @@ static void MX_TIM9_Init(void)
 static void MX_TIM10_Init(void)
 {
     htim10.Instance               = TIM10;
-    htim10.Init.Prescaler         = 15;
+    htim10.Init.Prescaler         = 83;
     htim10.Init.CounterMode       = TIM_COUNTERMODE_UP;
     htim10.Init.Period            = 999;
     htim10.Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;

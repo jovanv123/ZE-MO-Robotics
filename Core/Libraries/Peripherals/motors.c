@@ -173,27 +173,26 @@ void set_AX_WheelMode(uint8_t id, uint8_t enable) {
 	HAL_UART_Transmit(&huart6, packet, 9, 100);
 }
 
-//void set_AX_ServoMode(uint8_t id)
-//{
-//    uint16_t ccw_limit = 1023;
-//    uint8_t packet[9];
-//    packet[0] = 0xFF;
-//    packet[1] = 0xFF;
-//    packet[2] = id;
-//    packet[3] = 0x05;
-//    packet[4] = 0x03;
-//    packet[5] = 0x08;
-//    packet[6] = (uint8_t)(ccw_limit & 0xFF);
-//    packet[7] = (uint8_t)((ccw_limit >> 8) & 0xFF);
-//
-//    uint32_t checksum = packet[2] + packet[3] + packet[4] + packet[5] + packet[6] + packet[7];
-//    packet[8] = (uint8_t)(~(checksum) & 0xFF);
-//
-//    HAL_UART_Transmit(&huart6, packet, 9, 100);
-//
-//    HAL_Delay(5);
-//    move_AX_Wheel(id, 0);
-//}
+void set_AX_ServoMode(uint8_t id)
+{
+    uint16_t ccw_limit = 1023;
+    uint8_t packet[9];
+    packet[0] = 0xFF;
+    packet[1] = 0xFF;
+    packet[2] = id;
+    packet[3] = 0x05;
+    packet[4] = 0x03;
+    packet[5] = 0x08;
+    packet[6] = (uint8_t)(ccw_limit & 0xFF);
+    packet[7] = (uint8_t)((ccw_limit >> 8) & 0xFF);
+
+    uint32_t checksum = packet[2] + packet[3] + packet[4] + packet[5] + packet[6] + packet[7];
+    packet[8] = (uint8_t)(~(checksum) & 0xFF);
+
+    HAL_UART_Transmit(&huart6, packet, 9, 100);
+
+    HAL_Delay(5);
+}
 
 void move_AX_Wheels_Sync(uint8_t id1, float speed1, uint8_t id2, float speed2) {
 	float speeds[2] = { speed1, speed2 };

@@ -1,0 +1,3 @@
+../Core/Libraries/Peripherals/encoders.c:4:6:encoder_init	1
+../Core/Libraries/Peripherals/encoders.c:11:9:encoder_get_count_right_motor	1
+../Core/Libraries/Peripherals/encoders.c:19:9:encoder_get_count_left_motor	1

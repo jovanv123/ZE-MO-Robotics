@@ -1,0 +1,12 @@
+../Core/Libraries/Logic/sequences.c:3:6:init_robot	24	static
+../Core/Libraries/Logic/sequences.c:16:6:pushers_on	8	static
+../Core/Libraries/Logic/sequences.c:21:6:pushers_off	8	static
+../Core/Libraries/Logic/sequences.c:26:6:rotators_on	8	static
+../Core/Libraries/Logic/sequences.c:31:6:rotators_off	8	static
+../Core/Libraries/Logic/sequences.c:36:6:storage_on	16	static
+../Core/Libraries/Logic/sequences.c:41:6:storage_off	16	static
+../Core/Libraries/Logic/sequences.c:46:6:leadscrew_closed	32	static
+../Core/Libraries/Logic/sequences.c:52:6:leadscrew_opened	32	static
+../Core/Libraries/Logic/sequences.c:58:6:plazma_on	8	static
+../Core/Libraries/Logic/sequences.c:63:6:plazma_off	8	static
+../Core/Libraries/Logic/sequences.c:68:6:steppers_up	8	static

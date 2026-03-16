@@ -1,0 +1,9 @@
+../Core/Libraries/Logic/odometry.c:12:6:odometry_init	24	static
+../Core/Libraries/Logic/odometry.c:22:6:calculate_odometry	40	static
+../Core/Libraries/Logic/odometry.c:49:7:get_speed_r	4	static
+../Core/Libraries/Logic/odometry.c:53:7:get_speed_l	4	static
+../Core/Libraries/Logic/odometry.c:57:7:get_x	4	static
+../Core/Libraries/Logic/odometry.c:61:7:get_y	4	static
+../Core/Libraries/Logic/odometry.c:65:7:get_fi	4	static
+../Core/Libraries/Logic/odometry.c:69:7:get_unwrapped_fi	4	static
+../Core/Libraries/Logic/odometry.c:73:6:set_x_y	24	static

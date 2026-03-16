@@ -1,0 +1,8 @@
+../Core/Libraries/Peripherals/motors.c:21:6:PWM_Init	1
+../Core/Libraries/Peripherals/motors.c:33:6:PWM_SetSpeed_Left	3
+../Core/Libraries/Peripherals/motors.c:50:6:PWM_SetSpeed_Right	3
+../Core/Libraries/Peripherals/motors.c:88:6:move_step_motors	1
+../Core/Libraries/Peripherals/motors.c:103:6:move_step_back	1
+../Core/Libraries/Peripherals/motors.c:156:6:set_AX_WheelMode	2
+../Core/Libraries/Peripherals/motors.c:196:6:move_AX_Wheels_Sync	6
+../Core/Libraries/Peripherals/motors.c:242:6:move_AX_Servo_Sync	9

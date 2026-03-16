@@ -1,0 +1,73 @@
+HEAD
+# Created by https://www.toptal.com/developers/gitignore/api/st-stm32cubeide,c
+# Edit at https://www.toptal.com/developers/gitignore?templates=st-stm32cubeide,c
+
+### C ###
+
+c0d8ac828c619d77a6de89893173be742d992191
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+
+HEAD
+# STM32CubeIDE specifics
+Debug/
+Release/
+*.cyclo
+.settings/
+.unresolved
+#!! ERROR: st-stm32cubeide is undefined. Use list command to see defined gitignore types !!#
+
+# End of https://www.toptal.com/developers/gitignore/api/st-stm32cubeide,c
+# debug information files
+*.dwo
+c0d8ac828c619d77a6de89893173be742d992191

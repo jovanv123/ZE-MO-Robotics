@@ -34,15 +34,15 @@ void calculate_odometry() {
 	last_n_l = (int32_t)current_n_l;
 
     float ds = (ds_r + ds_l) / 2.0f;
-    float dfi = (ds_r - ds_l) / wheel_base;
+    float dfi = (ds_l - ds_r) / wheel_base;
     float fi_mid = fi + (dfi / 2.0f);
 
     x += ds * cosf(fi_mid);
     y += ds * sinf(fi_mid);
     fi += dfi;
     unwrapped_fi += dfi;
-    if (fi > M_PI)  fi -= 2.0f * M_PI;
-    if (fi < -M_PI) fi += 2.0f * M_PI;
+    while (fi > M_PI)  fi -= 2.0f * M_PI;
+    while (fi < -M_PI) fi += 2.0f * M_PI;
 
 }
 

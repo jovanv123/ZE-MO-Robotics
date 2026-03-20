@@ -11,6 +11,8 @@ volatile uint32_t debug_ODR_A;
 volatile uint32_t ccr_val;
 extern volatile bool ax_moving;
 
+volatile int debug_pin1, debug_pin2;
+
 volatile float current_position = 0, current_position_back = 0;
 volatile int step_counter = 0, step_counter_back = 0;
 volatile int pwm_active = 0, pwm_active_back = 0;
@@ -33,9 +35,11 @@ void PWM_Init() {
 void PWM_SetSpeed_Left(float speed) {
 
 	if (speed >= 0) {
-		GPIOF->BSRR = (1 << 5);
+		debug_pin1 = 1;
+		GPIOF->BSRR = (1 << 6);
 	} else {
-		GPIOF->BSRR = (1 << (5 + 16));
+		GPIOF->BSRR = (1 << (6 + 16));
+		debug_pin1 = 0;
 		speed = -speed;
 	}
 
@@ -48,10 +52,13 @@ void PWM_SetSpeed_Left(float speed) {
 }
 
 void PWM_SetSpeed_Right(float speed) {
+
 	if (speed >= 0) {
-		GPIOF->BSRR = (1 << 6);
+		debug_pin2 = 1;
+		GPIOF->BSRR = (1 << 5);
 	} else {
-		GPIOF->BSRR = (1 << (6 + 16));
+		GPIOF->BSRR = (1 << (5 + 16));
+		debug_pin2 = 0;
 		speed = -speed;
 	}
 

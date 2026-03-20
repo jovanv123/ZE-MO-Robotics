@@ -13,6 +13,7 @@ static bool is_braking = false;
 static bool is_moving = false;
 static bool is_spinning = false;
 
+float angle_so_far;
 float target_speed, target_v;
 float start_x, start_y;
 float start_fi;
@@ -59,11 +60,18 @@ float calculate_trapezoid(float max_vel, float max_accel, float cx, float cy, fl
 
     if (path_so_far < s1) {
         target_v = sqrtf(2.0f * max_accel * path_so_far) + 10.0f;
-    } else if (path_so_far >= (s1 + s2)) {
+    }
+    else if (path_so_far >= (s1 + s2)) {
 
         target_v = sqrt(pow(peak_vel, 2) - 2.0f * max_accel*(path_so_far - s1 - s2));
 
-    } else {
+    }
+//    else if (path_so_far >= total_path - 50.0f) {
+//
+//        target_v = sqrt(pow(peak_vel, 2) - 2.0f * max_accel*0.6f*(path_so_far - s1 - s2));
+//
+//    }
+    else {
         target_v = peak_vel;
     }
 
@@ -97,7 +105,7 @@ float calculate_angular_trapezoid(float max_ang_vel, float ang_accel, float curr
     float current_diff = current_fi - start_fi;
     while (current_diff > M_PI) current_diff -= 2.0f * M_PI;
     while (current_diff < -M_PI) current_diff += 2.0f * M_PI;
-    float angle_so_far = fabsf(current_diff);
+    angle_so_far = fabsf(current_diff);
 
     if (angle_so_far >= total_angle) {
         is_rotating = false;
@@ -107,7 +115,7 @@ float calculate_angular_trapezoid(float max_ang_vel, float ang_accel, float curr
         return 0.0f;
     }
     if (angle_so_far < rots1) {
-    	target_speed = sqrtf((2.0f * ang_accel) * angle_so_far) + 25.0f;
+    	target_speed = sqrtf((2.0f * ang_accel) * angle_so_far) + 20.0f;
     } else if (angle_so_far > (rots1 + rots2)) {
 
         target_speed = sqrtf(pow(peak_ang_vel, 2) - 2.0f * ang_accel*(angle_so_far - rots1 - rots2));
@@ -148,12 +156,13 @@ float calculate_spin_trapezoid(float max_ang_vel, float ang_accel, float relativ
         is_spinning = false;
         *phase = IDLE;
         reset_PID();
+        reset_move_profiles();
         return 0.0f;
     }
 
     float out_v;
     if (moved < s_1) {
-        out_v = sqrtf(2.0f * ang_accel * moved) + 10.0f;
+        out_v = sqrtf(2.0f * ang_accel * moved) + 100.0f;
     } else if (moved > (s_1 + s_2)) {
         out_v = sqrtf(pow(s_peak_vel, 2) - 2.0f * ang_accel * (moved - s_1 - s_2));
     } else {

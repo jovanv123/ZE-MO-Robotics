@@ -63,8 +63,8 @@ volatile float ref_fi;
 volatile float spin_target      = 0.0f;
 volatile float spin_start_angle = 0.0f;
 volatile float remaining;
-volatile float cx, cy, cfi, c_speedr, c_speedl;
-float global_goal_x, global_goal_y;
+volatile float cx, cy, cfi, c_speedr, c_speedl, c_speedr_old, c_speedl_old, c_speedl_new, c_speedr_new;
+float global_goal_x = 0, global_goal_y = 0;
 uint8_t  movement_phase;
 volatile int8_t  dir;
 volatile float   v_ref2;
@@ -72,6 +72,8 @@ volatile float   v_ref2;
 int sys_t            = 0;
 int sys_tax          = 0;
 int designated_time  = 0;
+
+bool debug_sensor = false;
 
 int sensor_filter_counter   = 0;
 const int FILTER_THRESHOLD  = 10;
@@ -100,11 +102,8 @@ static void MX_TIM4_Init(void);
 static void MX_TIM7_Init(void);
 static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
-bool read_sensors(void);
-void turn_crates(void);
-void navigate(float tx, float ty, int8_t direction, float acc, float vel);
-void spin_robot(float num_circles);
-void move_AX_Wheels_SyncTime(uint8_t id1, float speed1, uint8_t id2, float speed2, int time);
+
+uint8_t ss1, ss2, ss3, ss4;
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -116,6 +115,7 @@ void move_AX_Wheels_SyncTime(uint8_t id1, float speed1, uint8_t id2, float speed
   * @brief  The application entry point.
   * @retval int
   */
+
 int main(void)
 {
 
@@ -151,48 +151,91 @@ int main(void)
   MX_TIM7_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
+
   PWM_Init();
   HAL_TIM_Base_Start_IT(&htim7);
   encoder_init();
-  odometry_init(81.54, 81.54, 424.77);
+  odometry_init(81.54, 81.54, 422.0);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-      bool motors_idle = !stepper_moving && !stepper_back_moving && !ax_moving;
+  set_AX_WheelMode(RIGHT_LEADSCREW_AX, 1);
+  HAL_Delay(500);
+  set_AX_WheelMode(LEFT_LEADSCREW_AX, 1);
+  HAL_Delay(500);
+  state= 100;
+//  leadscrew_closed(3500);
+//  HAL_Delay(10);
+  pushers_off();
+//  storage_off();
+//  HAL_Delay(1000);
+  leadscrew_opened(2500);
+  while (1)  {
+	  bool motors_idle = !ax_moving && !stepper_back_moving && !stepper_moving;
+
+	  switch(state)
+	  {
+	  case 0:
+		  if(motors_idle)
+		  {
+			  leadscrew_opened(3500);
+
+//			  move_AX_Servo_Sync(LEFT_PUSHER_AX, LEFT_PUSHER_OFF, RIGHT_PUSHER_AX, RIGHT_PUSHER_OFF, 100);
+			  move_step_motors(50.0);
+//			  HAL_Delay(50);
+//			  leadscrew_opened(3500);
+	//		  move_step_motors(90.0);
+	//		  HAL_Delay(500);
+	//		  move_step_back(90.0);
+//			  steppers_up();
+			  navigate(550, 0, FORWARDS, MAX_PHYSICAL_SPEED, 1000);
+			  state++;
+		  }
+		  break;
+
+	  case 1:
+		  if(motors_idle && movement_phase == IDLE)
+		  {
+			  navigate(750, 0, FORWARDS, 100, 1000);
+			  state++;
+		  }
+		  break;
+	  case 2:
+		  if(movement_phase==IDLE && motors_idle)
+		  {
+			  HAL_Delay(10);
+			  pushers_on();
+			  HAL_Delay(10);
+			  move_step_motors(0.0);
+			  HAL_Delay(500);
+			  pushers_off();
+			  state++;
+		  }
+		  break;
+	  case 3:
+		  if(movement_phase==IDLE && motors_idle)
+		  {
+			  HAL_Delay(10);
+			  leadscrew_closed(2000);
+			  pushers_off();
+			  state++;
+		  }
+		  break;
+	  case 4:
+		  if(motors_idle)
+		  {
+			  pushers_off();
+			  HAL_Delay(200);
+			  navigate(0, 0, BACKWARDS, MAX_PHYSICAL_SPEED, 1000);
+			  steppers_up();
+			  state++;
+		  }
+		  break;
+	  }
 //      move_AX_Wheels_Sync(LEFT_STORAGE_AX, -100, RIGHT_STORAGE_AX, 100);
     /* USER CODE END WHILE */
-//	  PWM_SetSpeed_Left(200);
-//	  PWM_SetSpeed_Right(200);
-//      HAL_Set
-	  pushers_on();
-	  HAL_Delay(500);
-	  pushers_off();
-	  HAL_Delay(500);
-	  switch (state) {
-	          case 0:
 
-	        	  if(motors_idle)
-	        	  {
-//	        		steppers_up();
-//	        		storage_on();
-
-	              	state++;
-	        	  }
-	              break;
-	          case 1:
-	              if (motors_idle) {
-	              	state++;
-	              }
-	              break;
-	          case 2:
-	              if (motors_idle) {
-
-	              }
-	              break;
-	  }
     /* USER CODE BEGIN 3 */
   }
 
@@ -201,49 +244,65 @@ int main(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
     if (htim->Instance == TIM7) {
-
+    	debug_sensor = read_sensors();
         calculate_odometry();
         cx       = get_x();
         cy       = get_y();
         cfi      = get_fi();
-        c_speedl = get_speed_l();
-        c_speedr = get_speed_r();
+        c_speedl_new = get_speed_l();
+        c_speedr_new = get_speed_r();
 
-        if (movement_phase == TRANSLATION || movement_phase == ROTATION || movement_phase == IDLE) {
-            ref_fi = atan2f(global_goal_y - cy, global_goal_x - cx);
-            if (dir == BACKWARDS)
-                ref_fi -= M_PI;
-        } else if (movement_phase == SPIN) {
-            ref_fi = spin_start_angle + spin_target;
+        c_speedl = (0.8f * c_speedl_new) + ((1 - 0.8f) * c_speedl_old);
+        c_speedr = (0.8f * c_speedr_new) + ((1 - 0.8f) * c_speedr_old);
+        if(!read_sensors())
+        {
+			if (movement_phase == TRANSLATION || movement_phase == ROTATION || movement_phase == IDLE) {
+				ref_fi = atan2f(global_goal_y - cy, global_goal_x - cx);
+				if (dir == BACKWARDS && movement_phase == ROTATION)
+				{
+					ref_fi -= M_PI;
+				}
+
+			} else if (movement_phase == SPIN) {
+				ref_fi = spin_start_angle + spin_target;
+			}
+
+			float dx = global_goal_x - cx;
+			float dy = global_goal_y - cy;
+			remaining = sqrtf(dx * dx + dy * dy);
+
+			if (sys_t % 10 == 0) {
+				if (movement_phase == ROTATION) {
+					v_ref2 = calculate_angular_trapezoid(50000, 250000, cfi, ref_fi, &movement_phase);
+				} else if (movement_phase == TRANSLATION) {
+					v_ref2 = calculate_trapezoid(des_acc, max_vel, cx, cy, global_goal_x, global_goal_y, &movement_phase);
+				} else if (movement_phase == SPIN) {
+					float angle_turned = get_unwrapped_fi() - spin_start_angle;
+					v_ref2 = calculate_spin_trapezoid(100000, 100000, angle_turned, spin_target, &movement_phase);
+				}
+			}
         }
-
-        float dx = global_goal_x - cx;
-        float dy = global_goal_y - cy;
-        remaining = sqrtf(dx * dx + dy * dy);
-
-        if (sys_t % 10 == 0) {
-            if (movement_phase == ROTATION) {
-                v_ref2 = calculate_angular_trapezoid(200, 200, cfi, ref_fi, &movement_phase);
-            } else if (movement_phase == TRANSLATION) {
-                v_ref2 = calculate_trapezoid(des_acc, max_vel, cx, cy, global_goal_x, global_goal_y, &movement_phase);
-            } else if (movement_phase == SPIN) {
-                float angle_turned = get_unwrapped_fi() - spin_start_angle;
-                v_ref2 = calculate_spin_trapezoid(400, MAX_ANG_ACCEL, angle_turned, spin_target, &movement_phase);
-            }
+        else
+        {
+        	if (sys_t % 10 == 0)
+        		v_ref2 = v_ref2 * 0.95;
+        	reset_move_profiles();
         }
 
         if (ax_moving) {
-            sys_tax++;
-            if (sys_tax % designated_time == 0) {
-                move_AX_Wheels_Sync(LEFT_LEADSCREW_AX, 0, RIGHT_LEADSCREW_AX, 0);
-                move_AX_Wheels_Sync(LEFT_STORAGE_AX,   0, RIGHT_STORAGE_AX,   0);
-                designated_time = 0;
-                sys_tax         = 0;
-                ax_moving       = false;
-            }
-        }
+        	sys_tax++;
+        	if (sys_tax % designated_time == 0) {
+        		move_AX_Wheels_Sync(LEFT_LEADSCREW_AX, 0, RIGHT_LEADSCREW_AX, 0);
+        		move_AX_Wheels_Sync(LEFT_STORAGE_AX,   0, RIGHT_STORAGE_AX,   0);
+				designated_time = 0;
+				sys_tax         = 0;
+				ax_moving       = false;
+			}
+		}
 
-//        movement_PID(v_ref2, &movement_phase, MAX_ACCEL, global_goal_x, global_goal_y, ref_fi, dir);
+        movement_PID(v_ref2, &movement_phase, MAX_ACCEL, global_goal_x, global_goal_y, ref_fi, dir);
+        c_speedr_old = c_speedr;
+        c_speedl_old = c_speedl;
         sys_t = (sys_t >= 2000) ? 0 : sys_t + 1;
     }
 
@@ -305,12 +364,9 @@ void move_AX_Wheels_SyncTime(uint8_t id1, float speed1, uint8_t id2, float speed
 
 bool read_sensors(void)
 {
-    if (GPIOC->IDR & GPIO_PIN_8) {
-        sensor_filter_counter++;
-        if (sensor_filter_counter >= FILTER_THRESHOLD)
+    if (HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_5)) { //PG2 - PG5 su inputi za senzor
             return true;
     } else {
-        sensor_filter_counter = 0;
         return false;
     }
 }
@@ -327,7 +383,9 @@ void turn_crates(void)
     default:   break;
     }
 }
-/* USER CODE END 3 */
+  /* USER CODE END 3 */
+
+
 /**
   * @brief System Clock Configuration
   * @retval None
@@ -647,7 +705,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 9600;
+  huart1.Init.BaudRate = 115200;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -687,6 +745,9 @@ static void MX_USART1_UART_Init(void)
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+
+  /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOF_CLK_ENABLE();
@@ -697,56 +758,64 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
 
-  /* 1. Set Initial Output Levels */
-
-  // Set Stepper Sleep pins to HIGH (Active)
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOF, MOTOR1_SLP_Pin|MOTOR2_SLP_Pin, GPIO_PIN_SET);
 
-  // Set Stepper Enable pins to HIGH (Disabled/Idle as requested)
-  HAL_GPIO_WritePin(GPIOF, STEPDRIVER1_EN_Pin|STEPDRIVER2_EN_Pin, GPIO_PIN_RESET);
-
-  // Reset Directions and Microstepping pins
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOF, MOTOR1_DIR_Pin|MOTOR2_DIR_Pin|MS1_1_MICROSTEP_Pin|STEP1_DIR_Pin
-                          |MS1_2_MICROSTEP_Pin|STEP2_DIR_Pin
+                          |STEPDRIVER1_EN_Pin|MS1_2_MICROSTEP_Pin|STEPDRIVER2_EN_Pin|STEP2_DIR_Pin
                           |MS2_1_MICROSTEP_Pin|MS2_2_MICROSTEP_Pin, GPIO_PIN_RESET);
 
-  // Reset GPIOG Outputs
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOG, GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11|GPIO_PIN_12
                           |GPIO_PIN_13|GPIO_PIN_14, GPIO_PIN_RESET);
 
-  /* 2. Configure GPIO pins : Stepper Control Pins (Port F) */
-  // Including SLP, MS (Microstep), EN, and DIR
+  /*Configure GPIO pins : MOTOR1_SLP_Pin MOTOR2_SLP_Pin MS1_1_MICROSTEP_Pin STEP1_DIR_Pin
+                           STEPDRIVER1_EN_Pin MS1_2_MICROSTEP_Pin STEPDRIVER2_EN_Pin STEP2_DIR_Pin
+                           MS2_1_MICROSTEP_Pin MS2_2_MICROSTEP_Pin */
   GPIO_InitStruct.Pin = MOTOR1_SLP_Pin|MOTOR2_SLP_Pin|MS1_1_MICROSTEP_Pin|STEP1_DIR_Pin
                           |STEPDRIVER1_EN_Pin|MS1_2_MICROSTEP_Pin|STEPDRIVER2_EN_Pin|STEP2_DIR_Pin
                           |MS2_1_MICROSTEP_Pin|MS2_2_MICROSTEP_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  // IMPORTANT: For H7, use HIGH speed for STEP/DIR pins to ensure clean pulses
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
-  /* 3. Configure DC Motor Direction Pins (Port F) */
+  /*Configure GPIO pins : MOTOR1_DIR_Pin MOTOR2_DIR_Pin */
   GPIO_InitStruct.Pin = MOTOR1_DIR_Pin|MOTOR2_DIR_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
-  /* 4. Configure GPIOG Input Pins (Sensors/Switches) */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3
-                          |GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
+  /*Configure GPIO pins : PG0 PG1 PG2 PG4
+                           PG5 PG6 PG7 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_4
+                          |GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
-  /* 5. Configure GPIOG Output Pins (Auxiliary/Peripherals) */
+  /*Configure GPIO pin : PG3 */
+  GPIO_InitStruct.Pin = GPIO_PIN_3;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PG9 PG10 PG11 PG12
+                           PG13 PG14 */
   GPIO_InitStruct.Pin = GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11|GPIO_PIN_12
                           |GPIO_PIN_13|GPIO_PIN_14;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+
+  /* USER CODE END MX_GPIO_Init_2 */
 }
+
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */

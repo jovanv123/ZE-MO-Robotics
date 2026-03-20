@@ -27,7 +27,7 @@ extern UART_HandleTypeDef huart1;
 #define BACKWARDS -1
 
 //Main Motors
-#define MAX_PHYSICAL_SPEED 1000.0f
+#define MAX_PHYSICAL_SPEED 800.0f
 
 #define MOTOR_PWM_TIMER 	htim3
 #define PWM_MAX_VALUE 		2099
@@ -76,11 +76,11 @@ extern UART_HandleTypeDef huart1;
 #define FRONT_ROTATOR_ON 120
 #define FRONT_ROTATOR_OFF 55
 
-#define LEFT_PUSHER_OFF 220//142 //60
-#define LEFT_PUSHER_ON 175 //217 //0
+#define LEFT_PUSHER_OFF 130//142 //60
+#define LEFT_PUSHER_ON 190 //217 //0
 
-#define RIGHT_PUSHER_OFF 175//67 // 150
-#define RIGHT_PUSHER_ON  220 //11  // 210
+#define RIGHT_PUSHER_OFF 70//67 // 150
+#define RIGHT_PUSHER_ON  10 //11  // 210
 
 #define LEFT_STORAGE_ON 0
 #define LEFT_STORAGE_OFF 300

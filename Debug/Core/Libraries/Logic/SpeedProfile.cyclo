@@ -1,5 +1,0 @@
-../Core/Libraries/Logic/SpeedProfile.c:24:7:calculate_trapezoid	7
-../Core/Libraries/Logic/SpeedProfile.c:75:7:calculate_angular_trapezoid	11
-../Core/Libraries/Logic/SpeedProfile.c:123:7:get_remaining	1
-../Core/Libraries/Logic/SpeedProfile.c:128:7:calculate_spin_trapezoid	7
-../Core/Libraries/Logic/SpeedProfile.c:166:6:reset_move_profiles	1

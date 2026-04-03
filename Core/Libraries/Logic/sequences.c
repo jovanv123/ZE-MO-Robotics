@@ -10,7 +10,6 @@ void init_robot(int time)
 	HAL_Delay(10);
 	move_AX_Servo_Sync(FRONT_ROTATOR_AX, FRONT_ROTATOR_OFF, BACK_ROTATOR_AX, BACK_ROTATOR_OFF, 100);
 	HAL_Delay(10);
-	move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, -100, RIGHT_LEADSCREW_AX, -100, time);
 }
 
 void pushers_on()
@@ -33,41 +32,41 @@ void rotators_off()
 	move_AX_Servo_Sync(FRONT_ROTATOR_AX, FRONT_ROTATOR_OFF, BACK_ROTATOR_AX, BACK_ROTATOR_OFF, 100);
 }
 
-void storage_on()
-{
-    move_AX_Wheels_SyncTime(LEFT_STORAGE_AX, -100, RIGHT_STORAGE_AX, -100, 2500);
-}
-
 void storage_off()
 {
-    move_AX_Wheels_SyncTime(LEFT_STORAGE_AX, 100, RIGHT_STORAGE_AX, 100, 2500);
+	  move_Wheels_SyncTime(LEFT_STORAGE_AX, 100, RIGHT_STORAGE_AX, 100, 1500, AX);
+}
+
+void storage_on()
+{
+	  move_Wheels_SyncTime(LEFT_STORAGE_AX, -100, RIGHT_STORAGE_AX, -100, 1500, AX);
 }
 
 void leadscrew_closed(int time)
 {
 	int move_time = time;
-	move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, 100, RIGHT_LEADSCREW_AX, 100, move_time);
+	move_Wheels_SyncTime(1, -10000, 2, -10000, move_time, WAVESHARE);
 }
 
 void leadscrew_opened(int time)
 {
 	int move_time = time;
-	move_AX_Wheels_SyncTime(LEFT_LEADSCREW_AX, -100, RIGHT_LEADSCREW_AX, -100, move_time);
+	move_Wheels_SyncTime(1, 10000, 2, 10000, move_time, WAVESHARE);
 }
 
 void plazma_on()
 {
-	move_AX_Servo_Sync(1,1,2,280,100);
+	move_AX_Servo_Sync(LEFT_PLAZMA_AX, LEFT_PLAZMA_ON, RIGHT_PLAZMA_AX, RIGHT_PLAZMA_ON, 100);
 }
 
 void plazma_off()
 {
-	move_AX_Servo_Sync(1,189,2,92,100);
+	move_AX_Servo_Sync(LEFT_PLAZMA_AX, LEFT_PLAZMA_OFF, RIGHT_PLAZMA_AX, RIGHT_PLAZMA_OFF, 100);
 }
 
-void steppers_up()
+void steppers_up(float position)
 {
-	move_step_back(90.0);
-	move_step_motors(90.0);
+	move_step_back(position);
+	move_step_motors(position);
 }
 

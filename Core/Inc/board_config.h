@@ -10,7 +10,7 @@
 #include "stm32h7xx_hal.h"
 
 extern TIM_HandleTypeDef htim5, htim4, htim7, htim3, htim2, htim1, htim9, htim10, htim11;
-extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart4, huart5;
 
 #define FRONT 1
 #define BACK 2
@@ -25,9 +25,10 @@ extern UART_HandleTypeDef huart1;
 #define S_CURVE 2
 #define FORWARDS 1
 #define BACKWARDS -1
-
+#define AX 1
+#define WAVESHARE 2
 //Main Motors
-#define MAX_PHYSICAL_SPEED 800.0f
+#define MAX_PHYSICAL_SPEED 2000.0f
 
 #define MOTOR_PWM_TIMER 	htim3
 #define PWM_MAX_VALUE 		2099
@@ -52,6 +53,9 @@ extern UART_HandleTypeDef huart1;
 
 #define SERVO_TIMER		htim11
 
+#define first 1
+#define second 2
+
 #define FRONT_ROTATOR_AX 21 // id ax-eva
 #define BACK_ROTATOR_AX 20
 
@@ -63,6 +67,9 @@ extern UART_HandleTypeDef huart1;
 
 #define RIGHT_STORAGE_AX 71
 #define LEFT_STORAGE_AX 70
+
+#define RIGHT_PLAZMA_AX 40
+#define LEFT_PLAZMA_AX 41
 
 #define RIGHT_LEADSCREW_ON 0
 #define RIGHT_LEADSCREW_OFF 140
@@ -77,20 +84,29 @@ extern UART_HandleTypeDef huart1;
 #define FRONT_ROTATOR_OFF 55
 
 #define LEFT_PUSHER_OFF 130//142 //60
-#define LEFT_PUSHER_ON 190 //217 //0
+#define LEFT_PUSHER_ON 200 //217 //0
 
 #define RIGHT_PUSHER_OFF 70//67 // 150
-#define RIGHT_PUSHER_ON  10 //11  // 210
+#define RIGHT_PUSHER_ON  0 //11  // 210
 
 #define LEFT_STORAGE_ON 0
 #define LEFT_STORAGE_OFF 300
 
 #define RIGHT_STORAGE_ON 0
 #define RIGHT_STORAGE_OFF 300
+
+#define RIGHT_PLAZMA_OFF 200
+#define RIGHT_PLAZMA_ON  0
+
+#define LEFT_PLAZMA_ON 300
+#define LEFT_PLAZMA_OFF 100
 //Encoder Wheels
 #define ENC_LEFT_TIMER 		htim1
 #define ENC_RIGHT_TIMER 	htim2
 #define ENCODER_TICKS_PER_REV 		2048
+
+
+
 
 //Sensors
 

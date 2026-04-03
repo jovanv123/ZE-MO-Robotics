@@ -28,10 +28,17 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32h7xx_hal.h"
-#include <stdbool.h>
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stm32h7xx_hal.h"
+#include "encoders.h"
+#include "board_config.h"
+#include "motors.h"
+#include "odometry.h"
+#include "PID.h"
+#include "sequences.h"
+#include "SpeedProfile.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -59,7 +66,10 @@ bool read_sensors(void);
 void turn_crates(void);
 void navigate(float tx, float ty, int8_t direction, float acc, float vel);
 void spin_robot(float num_circles);
-void move_AX_Wheels_SyncTime(uint8_t id1, float speed1, uint8_t id2, float speed2, int time);
+void move_Wheels_SyncTime(uint8_t id1, float speed1, uint8_t id2, float speed2, int time, int type);
+void mechanism_fsm(void);
+void take_a_picture(void);
+void activate_mechanism(int lvl);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

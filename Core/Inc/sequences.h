@@ -17,10 +17,10 @@ void rotators_on();
 void rotators_off();
 void storage_on();
 void storage_off();
-void leadscrew_closed(int time);
-void leadscrew_opened(int time);
+void leadscrew_closed();
+void leadscrew_opened();
 void plazma_on();
 void plazma_off();
-void steppers_up();
+void steppers_up(float position);
 
 #endif /* INC_SEQUENCES_H_ */

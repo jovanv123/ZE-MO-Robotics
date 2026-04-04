@@ -23,13 +23,8 @@ volatile bool stepper_moving = false, stepper_back_moving = false;
 void PWM_Init() {
 	__HAL_TIM_SET_COMPARE(&MOTOR_PWM_TIMER, TIM_CHANNEL_1, 0);
 	__HAL_TIM_SET_COMPARE(&MOTOR_PWM_TIMER, TIM_CHANNEL_2, 0);
-//	__HAL_TIM_SET_COMPARE(&SERVO_TIMER, TIM_CHANNEL_1, 500);
-//	__HAL_TIM_SET_COMPARE(&SERVO_TIMER, TIM_CHANNEL_2, 500);
 	HAL_TIM_PWM_Start(&MOTOR_PWM_TIMER, TIM_CHANNEL_1); //Levi tocak
 	HAL_TIM_PWM_Start(&MOTOR_PWM_TIMER, TIM_CHANNEL_2); //Desni tocak
-//	HAL_TIM_PWM_Start(&SERVO_TIMER, TIM_CHANNEL_1);
-
-//	__HAL_TIM_MOE_ENABLE(&htim1);
 }
 
 void PWM_SetSpeed_Left(float speed) {

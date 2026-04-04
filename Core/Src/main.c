@@ -128,6 +128,18 @@ int main(void)
     set_WheelMode(1); HAL_Delay(300);
     set_WheelMode(2); HAL_Delay(300);
 
+    /* Motor initialization */
+    rotators_off();
+    plazma_off();
+    storage_off();
+    pushers_off();
+
+    /* Leadscrew init */
+    state = 100;
+//    HAL_Delay(4000);
+    leadscrew_opened(2500);
+//    leadscrew_closed(3500);
+
     while (1)
     {
         bool motors_idle = !ax_moving && !stepper_back_moving && !stepper_moving;
@@ -194,7 +206,7 @@ void mechanism_fsm(void)
         if (motors_idle) {
             pushers_on();
             HAL_Delay(300);
-            leadscrew_closed(1200);
+            leadscrew_closed(900);
             state_mechanism++;
         }
         break;
@@ -203,6 +215,7 @@ void mechanism_fsm(void)
         if (motors_idle) {
             HAL_Delay(1000);
             pushers_off();
+            HAL_Delay(5000);
             steppers_up(25.0);
             state_mechanism++;
         }
@@ -211,9 +224,9 @@ void mechanism_fsm(void)
     case 3:
         if (motors_idle) {
             rotators_on();
-            HAL_Delay(1500);
+            HAL_Delay(500);
             turn_crates();
-            HAL_Delay(1000);
+            HAL_Delay(3000);
             rotators_off();
             HAL_Delay(500);
 
@@ -445,8 +458,7 @@ bool read_sensors(void)
 void take_a_picture(void)
 {
     uint8_t msg = 1;
-    for (int i = 0; i < 6; i++)
-        HAL_UART_Transmit(&huart3, &msg, 1, 100);
+    HAL_UART_Transmit(&huart3, &msg, 1, 100);
 }
 
 void turn_crates(void)

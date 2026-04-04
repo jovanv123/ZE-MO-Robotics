@@ -3,9 +3,6 @@
 
 float rots1, rots2, s1, s2, s3, total_path, distance_traveled, x_current, y_current, x_beginning, y_beginning;
 static float s_total_angle, s_peak_vel, s_1, s_2;
-//static float profile_v = 0.0f;
-//static float profile_a = 0.0f;
-//static float jerk = 0.0f;
 float peak_vel, peak_ang_vel;
 
 static bool is_rotating = false;
@@ -66,11 +63,7 @@ float calculate_trapezoid(float max_vel, float max_accel, float cx, float cy, fl
         target_v = sqrt(pow(peak_vel, 2) - 2.0f * max_accel*(path_so_far - s1 - s2));
 
     }
-//    else if (path_so_far >= total_path - 50.0f) {
-//
-//        target_v = sqrt(pow(peak_vel, 2) - 2.0f * max_accel*0.6f*(path_so_far - s1 - s2));
-//
-//    }
+
     else {
         target_v = peak_vel;
     }

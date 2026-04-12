@@ -63,13 +63,40 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 bool read_sensors(void);
-void turn_crates(void);
+void turn_crates_inner(void);
+void turn_crates_outer(void);
+void finalize_crates(void);
 void navigate(float tx, float ty, int8_t direction, float acc, float vel);
+void rotate_to_point(float tx, float ty, int direction);
 void spin_robot(float num_circles);
 void move_Wheels_SyncTime(uint8_t id1, float speed1, uint8_t id2, float speed2, int time, int type);
 void mechanism_fsm(void);
+void pickup_fsm();
+void put_down_fsm(void);
+void activate_mechanism(void);
 void take_a_picture(void);
-void activate_mechanism(int lvl);
+void start_mechanism_wait(int time_ms);
+bool mechanism_wait_complete();
+
+typedef struct {
+	float approach_x;
+	float approach_y;
+	float x;
+	float y;
+	bool flag;
+} CratePosition;
+
+typedef struct {
+	float approach_x;
+	float approach_y;
+	float x;
+	float y;
+	bool flag;
+} PantryPosition;
+
+void pickup_crate(CratePosition pos, int side);
+void put_down_pantry(PantryPosition pos);
+
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

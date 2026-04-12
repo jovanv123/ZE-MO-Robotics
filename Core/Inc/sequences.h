@@ -14,6 +14,8 @@ void init_robot(int time);
 void pushers_on();
 void pushers_off();
 void rotators_on();
+void rotators_storage();
+void rotators_mid();
 void rotators_off();
 void storage_on();
 void storage_off();
@@ -22,5 +24,6 @@ void leadscrew_opened();
 void plazma_on();
 void plazma_off();
 void steppers_up(float position);
+
 
 #endif /* INC_SEQUENCES_H_ */

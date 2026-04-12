@@ -1,12 +1,13 @@
 #include "PID.h"
 
 float v_ref, v_target;
-float ref_speed_l = 0.0f, err_speed_l = 0.0f, err_speed_l_previous = 0.0f, u_speed_l = 0.0f, Kp_l = 2.8f, Ki_l = 0.027f;
-float ref_speed_r = 0.0f, err_speed_r = 0.0f, err_speed_r_previous = 0.0f, u_speed_r = 0.0f, Kp_r = 2.8f, Ki_r = 0.027f;
+float ref_speed_l = 0.0f, err_speed_l = 0.0f, err_speed_l_previous = 0.0f, u_speed_l = 0.0f, Kp_l = 2.8f, Ki_l = 0.029f;
+float ref_speed_r = 0.0f, err_speed_r = 0.0f, err_speed_r_previous = 0.0f, u_speed_r = 0.0f, Kp_r = 2.8f, Ki_r = 0.029f;
 float err_fi = 0.0f, err_fi_previous = 0.0f;
 float Kp_correction = 2.0f, Ki_correction = 0.01f, u_correction = 0.0f;
 extern volatile float cx, cy, cfi, c_speedl, c_speedr;
 float final_out_r = 0.0f, final_out_l = 0.0f;
+float final_r = 0.0f, final_l = 0.0f;
 float iterm_r, iterm_l;
 
 void movement_PID(float v_ref, uint8_t *movement_phase, float acceleration, float target_x, float target_y, float ref_fi, int8_t dir)
@@ -114,7 +115,7 @@ void speed_PID(float ref_speed, uint8_t movement_phase, float x_ref, float y_ref
 
     float du_r = Kp_r * (err_speed_r - err_speed_r_previous) + Ki_r * err_speed_r;
     u_speed_r += du_r;
-    u_speed_r = fminf(fmaxf(u_speed_r, -3000.0f), 2000.0f);
+    u_speed_r = fminf(fmaxf(u_speed_r, -2000.0f), 2000.0f);
     err_speed_r_previous = err_speed_r;
 
     float du_l = Kp_l * (err_speed_l - err_speed_l_previous) + Ki_l * err_speed_l;
@@ -127,23 +128,32 @@ void speed_PID(float ref_speed, uint8_t movement_phase, float x_ref, float y_ref
     final_out_l = fminf(fmaxf(u_speed_l, -2000.0f), 2000.0f);
     final_out_r = fminf(fmaxf(u_speed_r, -2000.0f), 2000.0f);
 
+    final_l = final_out_l;
+    final_r = final_out_r;
+
     if (movement_phase == TRANSLATION) {
-        PWM_SetSpeed_Left(dir * final_out_l);
-        PWM_SetSpeed_Right(dir * final_out_r);
+        PWM_SetSpeed_Left(dir * final_l);
+        PWM_SetSpeed_Right(dir * final_r);
     } else if (movement_phase == ROTATION) {
-        PWM_SetSpeed_Left(final_out_l);
-        PWM_SetSpeed_Right(final_out_r);
+        PWM_SetSpeed_Left(final_l);
+        PWM_SetSpeed_Right(final_r);
     } else {
-        PWM_SetSpeed_Left(dir*final_out_l);
-        PWM_SetSpeed_Right(dir*final_out_r);
+        PWM_SetSpeed_Left(dir*final_l);
+        PWM_SetSpeed_Right(dir*final_r);
     }
 }
 
 void reset_PID() {
     u_speed_l = 0.0f;
     u_speed_r = 0.0f;
+    err_speed_l = 0.0f;
+    err_speed_r = 0.0f;
     err_speed_l_previous = 0.0f;
     err_speed_r_previous = 0.0f;
+    err_fi = 0.0f;
+    err_fi_previous = 0.0f;
     final_out_l = 0.0f;
     final_out_r = 0.0f;
+    final_l = 0.0f;
+    final_r = 0.0f;
 }

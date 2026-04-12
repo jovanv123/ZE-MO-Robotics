@@ -97,7 +97,7 @@ void move_step_back(float target_back) {
 
 void set_acceleration(uint8_t id, uint8_t acceleration)
 {
-	uint8_t packet[8];
+	static uint8_t packet[8];
 	packet[0] = 0xFF;
 	packet[1] = 0xFF;
 	packet[2] = id;
@@ -110,11 +110,11 @@ void set_acceleration(uint8_t id, uint8_t acceleration)
 			+ packet[6];
 	packet[7] = (uint8_t) (~checksum & 0xFF);
 
-	HAL_UART_Transmit(&huart4, packet, 8, 100);
+	HAL_UART_Transmit_IT(&huart4, packet, 8);
 }
 
 void set_WheelMode(uint8_t id) {
-	uint8_t packet[8];
+	static uint8_t packet[8];
 	packet[0] = 0xFF;
 	packet[1] = 0xFF;
 	packet[2] = id;
@@ -127,7 +127,7 @@ void set_WheelMode(uint8_t id) {
 			+ packet[6];
 	packet[7] = (uint8_t) (~checksum & 0xFF);
 
-	HAL_UART_Transmit(&huart4, packet, 8, 100);
+	HAL_UART_Transmit_IT(&huart4, packet, 8);
 }
 
 void move_Wheels_Sync(uint8_t id1, float speed1, uint8_t id2, float speed2) {
@@ -149,7 +149,7 @@ void move_Wheels_Sync(uint8_t id1, float speed1, uint8_t id2, float speed2) {
         }
     }
 
-    uint8_t packet[16];
+    static uint8_t packet[16];
     packet[0] = 0xFF;
     packet[1] = 0xFF;
     packet[2] = 0xFE;
@@ -171,7 +171,7 @@ void move_Wheels_Sync(uint8_t id1, float speed1, uint8_t id2, float speed2) {
         checksum += packet[i];
     packet[13] = (uint8_t) (~checksum & 0xFF);
 
-    HAL_UART_Transmit(&huart4, packet, 14, 100);
+    HAL_UART_Transmit_IT(&huart4, packet, 14);
 }
 
 void move_AX_Wheels_Sync(uint8_t id1, float speed1, uint8_t id2, float speed2) {
@@ -193,7 +193,7 @@ void move_AX_Wheels_Sync(uint8_t id1, float speed1, uint8_t id2, float speed2) {
 		}
 	}
 
-	uint8_t packet[14];
+	static uint8_t packet[14];
 	packet[0] = 0xFF;
 	packet[1] = 0xFF;
 	packet[2] = 0xFE;
@@ -217,12 +217,12 @@ void move_AX_Wheels_Sync(uint8_t id1, float speed1, uint8_t id2, float speed2) {
 		checksum += packet[i];
 	packet[13] = (uint8_t) (~(checksum) & 0xFF);
 
-	HAL_UART_Transmit(&huart5, packet, 14, 100);
+	HAL_UART_Transmit_IT(&huart5, packet, 14);
 }
 
 void move_wheel(uint8_t id, float speed)
 {
-    uint8_t packet[9];
+    static uint8_t packet[9];
 
     uint16_t speed_val = (uint16_t) fabs(speed);
     if (speed_val > 10000)
@@ -249,7 +249,7 @@ void move_wheel(uint8_t id, float speed)
         checksum += packet[i];
     packet[8] = (uint8_t) (~(checksum) & 0xFF);
 
-    HAL_UART_Transmit(&huart4, packet, 9, 1);
+    HAL_UART_Transmit_IT(&huart4, packet, 9);
 }
 void move_AX_Servo_Sync(uint8_t id1, float deg1, uint8_t id2, float deg2,
 		float speed_percent) {
@@ -274,7 +274,7 @@ void move_AX_Servo_Sync(uint8_t id1, float deg1, uint8_t id2, float deg2,
 		raw_pos[i] = (uint16_t) ((degrees[i] / 300.0f) * 1023.0f);
 	}
 
-	uint8_t packet[18];
+	static uint8_t packet[18];
 	packet[0] = 0xFF;
 	packet[1] = 0xFF;
 	packet[2] = 0xFE;
@@ -300,7 +300,7 @@ void move_AX_Servo_Sync(uint8_t id1, float deg1, uint8_t id2, float deg2,
 		checksum += packet[i];
 	packet[17] = (uint8_t) (~(checksum) & 0xFF);
 
-	HAL_UART_Transmit(&huart5, packet, 18, 100);
+	HAL_UART_Transmit_IT(&huart5, packet, 18);
 }
 
 

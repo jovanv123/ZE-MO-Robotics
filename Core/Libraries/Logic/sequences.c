@@ -27,6 +27,16 @@ void rotators_on()
 	move_AX_Servo_Sync(FRONT_ROTATOR_AX, FRONT_ROTATOR_ON, BACK_ROTATOR_AX, BACK_ROTATOR_ON, 100);
 }
 
+void rotators_storage()
+{
+	move_AX_Servo_Sync(FRONT_ROTATOR_AX, FRONT_ROTATOR_STORAGE, BACK_ROTATOR_AX, BACK_ROTATOR_STORAGE, 100);
+}
+
+void rotators_mid()
+{
+	move_AX_Servo_Sync(FRONT_ROTATOR_AX, FRONT_ROTATOR_MID, BACK_ROTATOR_AX, BACK_ROTATOR_MID, 100);
+}
+
 void rotators_off()
 {
 	move_AX_Servo_Sync(FRONT_ROTATOR_AX, FRONT_ROTATOR_OFF, BACK_ROTATOR_AX, BACK_ROTATOR_OFF, 100);
